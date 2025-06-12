@@ -6,9 +6,28 @@
 #    By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/11 18:10:26 by maiboyer          #+#    #+#              #
-#    Updated: 2025/06/11 18:10:38 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/06/12 18:29:29 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 all:
-	echo "yes"
+	docker compose build
+	docker compose up
+
+re:
+	$(MAKE) -f ./Docker.mk clean
+	$(MAKE) -f ./Docker.mk all
+
+clean:
+	docker compose down
+
+prune: clean
+	-if ! [ -z $(shell docker ps -a -q) ] ; then \
+		docker stop    $(shell docker ps -a -q); \
+		docker rm      $(shell docker ps -a -q); \
+	fi
+	-docker image   prune -a
+	-docker volume  prune
+	-docker network prune
+	-docker system  prune -a
+

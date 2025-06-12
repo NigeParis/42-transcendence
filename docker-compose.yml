@@ -1,0 +1,36 @@
+networks:
+  transcendance-network:
+    driver: bridge
+services:
+# service_name:
+#   build: ./service_name
+#   container_name: service_name
+#   image: service_name
+#   restart: always
+#   env_file: 
+#     - ${SECRET_DIR}/service_name.env
+#   networks:
+#     - transcendance-network
+#   volumes:
+#     - service_name-volume:/some_path
+#   depends_on:
+#   ports:
+#     - 'OUTSIDE_PORT:IN_CONTAINER_PORT'
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    restart: always
+    networks:
+      - transcendance-network
+    ports:
+      - '8888:443'
+    enviroment:
+      - NGINX_DOMAIN=local.maix.me
+volumes:
+# service_name-vol:
+#   driver: local
+#   driver_opts:
+#     type: 'none'
+#     o: 'bind'
+#     device: ${DATA_DIR:-/tmp/ft_deadge}/service_name
+#   name: "service_name-vol"
