@@ -6,13 +6,16 @@
 #    By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/11 18:10:26 by maiboyer          #+#    #+#              #
-#    Updated: 2025/06/12 18:29:29 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/06/12 22:06:41 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 all:
 	docker compose build
-	docker compose up
+	docker compose up -d
+
+logs:
+	docker compose logs -f --colors
 
 re:
 	$(MAKE) -f ./Docker.mk clean

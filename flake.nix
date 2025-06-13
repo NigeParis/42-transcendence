@@ -18,6 +18,9 @@
             podman
             podman-compose
             gnumake
+            nodejs_24
+            pnpm
+            typescript
           ];
           shellHook = ''
             export PODMAN_COMPOSE_WARNING_LOGS="false";

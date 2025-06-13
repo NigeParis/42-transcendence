@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/06/12 18:34:44 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/06/12 22:06:29 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -52,6 +52,9 @@ prune:
 	@$(MAKE) --no-print-directory header
 	@$(MAKE) --no-print-directory -f ./Docker.mk prune
 	@$(MAKE) --no-print-directory footer
+
+logs:
+	@$(MAKE) --no-print-directory -f ./Docker.mk logs
 
 $(NAME): all
 
