@@ -6,10 +6,10 @@
 //   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        //
 //                                                +#+#+#+#+#+   +#+           //
 //   Created: 2025/06/19 23:30:39 by maiboyer          #+#    #+#             //
-//   Updated: 2025/06/20 00:02:19 by maiboyer         ###   ########.fr       //
+//   Updated: 2025/07/28 15:36:11 by maiboyer         ###   ########.fr       //
 //                                                                            //
 // ************************************************************************** //
 
 import embed from "./embed.js";
 
-await embed('./src/init.sql', './src/init.sql.ts')
+await embed('./src/database/init.sql', './src/database/init.sql.ts')

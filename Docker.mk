@@ -6,12 +6,13 @@
 #    By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/11 18:10:26 by maiboyer          #+#    #+#              #
-#    Updated: 2025/06/16 15:37:20 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/07/28 18:00:02 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-all:
-	docker compose build
+BUILD_IMAGE = trans_builder
+
+all: build
 	docker compose up -d
 
 logs:
@@ -20,11 +21,16 @@ logs:
 down:
 	docker compose down
 
+build:
+	docker build -t "$(BUILD_IMAGE)" ./src
+	docker compose build
+
 re:
 	$(MAKE) -f ./Docker.mk clean
 	$(MAKE) -f ./Docker.mk all
 
 clean:
+	-docker rmi "$(BUILD_IMAGE)"
 	docker compose down
 
 prune: clean

@@ -26,14 +26,14 @@ services:
   # an example of an micro service. this one basically only does this: 
   #   - handle uploading of icons
   #   - write icons to shared volume allowing nginx to serve them (does it better than if we did it in the service)
-  icons-service:
+  icons:
     # build is a bit strange: it has two parts
     build:
       # the dockerfile to use
-      dockerfile: ./src/icons-service/Dockerfile
+      dockerfile: ./src/icons/Dockerfile
       # the current working directory. This means `.` in Dockerfile
       context: .
-    container_name: icons-service
+    container_name: icons
     restart: always
     networks:
       - transcendance-network

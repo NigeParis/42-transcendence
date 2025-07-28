@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/06/16 15:36:58 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/07/28 17:49:54 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,6 +30,11 @@ ECHO = /usr/bin/env echo
 all:
 	@$(MAKE) --no-print-directory header
 	@$(MAKE) --no-print-directory -f ./Docker.mk
+	@$(MAKE) --no-print-directory footer
+
+build:
+	@$(MAKE) --no-print-directory header
+	@$(MAKE) --no-print-directory -f ./Docker.mk build
 	@$(MAKE) --no-print-directory footer
 
 down:
@@ -95,5 +100,24 @@ re:
 tokei:
 	@/bin/sh -c 'tokei'
 
+npm:
+	@$(ECHO) "commands: "
+	@$(ECHO) "\tnpm@install: install all dependencies"
+	@$(ECHO) "\tnpm@fclean:  clean every \`dist\` directory"
+	@$(ECHO) "\tnpm@clean:   clean \`node_modules\` directory"
+	@$(ECHO) "\tnpm@build:   build subprojects"
+
+npm@install:
+	npm --prefix=./src/ run install-all
+
+npm@clean:
+	npm --prefix=./src/ run clean
+
+npm@fclean: npm@clean
+	npm --prefix=./src/ run fclean
+
+npm@build:
+	npm --prefix=./src/ run build
+
 #	phony
-.PHONY: all clean fclean re header footer
+.PHONY: all clean fclean re header footer npm_install npm_clear

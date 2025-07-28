@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2023",
+	"module": "NodeNext",
+    "moduleResolution": "NodeNext",
+	"newLine": "lf",
+
+	"noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "noUnusedLocals": true,
+    "removeComments": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    
+	"outDir": "dist",
+    "rootDir": "src",
+    "baseUrl": ".",
+	
+    "skipLibCheck": true,
+    "lib": ["ESNext"],
+    "paths": {
+      "@shared/database": ["./@shared/src/database"],
+      "@shared/uuid": ["./@shared/src/uuid"]
+    }
+  }
+}

@@ -1,12 +1,12 @@
 // ************************************************************************** //
 //                                                                            //
 //                                                        :::      ::::::::   //
-//   database.ts                                        :+:      :+:    :+:   //
+//   index.ts                                           :+:      :+:    :+:   //
 //                                                    +:+ +:+         +:+     //
 //   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        //
 //                                                +#+#+#+#+#+   +#+           //
-//   Created: 2025/06/17 17:06:31 by maiboyer          #+#    #+#             //
-//   Updated: 2025/07/17 16:28:48 by maiboyer         ###   ########.fr       //
+//   Created: 2025/07/28 17:36:22 by maiboyer          #+#    #+#             //
+//   Updated: 2025/07/28 17:36:26 by maiboyer         ###   ########.fr       //
 //                                                                            //
 // ************************************************************************** //
 
@@ -16,7 +16,7 @@ import sqlite from 'better-sqlite3'
 import { Result } from 'typescript-result'
 
 import initSql from "./init.sql.js"
-import { newUUIDv7, UUIDv7 } from './uuid.js'
+import { newUUIDv7, UUIDv7 } from '@shared/uuid'
 
 
 export class DBUserExists extends Error {

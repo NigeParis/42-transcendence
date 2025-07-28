@@ -1,0 +1,4 @@
+**/node_modules
+**/dist
+@shared/src/database/init.sql.ts
+**/Dockerfile
