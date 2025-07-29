@@ -28,11 +28,7 @@ services:
   #   - write icons to shared volume allowing nginx to serve them (does it better than if we did it in the service)
   icons:
     # build is a bit strange: it has two parts
-    build:
-      # the dockerfile to use
-      dockerfile: ./src/icons/Dockerfile
-      # the current working directory. This means `.` in Dockerfile
-      context: .
+    build: ./src/icons/
     container_name: icons
     restart: always
     networks:

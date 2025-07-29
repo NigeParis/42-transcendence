@@ -6,14 +6,14 @@ import sharp from 'sharp'
 
 const example: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	// await fastify.register(authMethod, {});
-	
+
 	// here we register plugins that will be active for the current fastify instance (aka everything in this function)
 	await fastify.register(fastifyRawBody, { encoding: false });
 
 	// we register a route handler for: `/<USERID_HERE>`
 	// it sets some configuration options, and set the actual function that will handle the request
 	fastify.post('/:userid', { config: { rawBody: true, encoding: false } }, async function(request, reply) {
-		
+
 		// this is how we get the `:userid` part of things
 		const userid: string | undefined = (request.params as any)['userid'];
 		if (userid === undefined) {
@@ -21,6 +21,10 @@ const example: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 		const image_store: string = fastify.getDecorator('image_store')
 		const image_path = join(image_store, userid)
+
+		//let raw_image_file = await open(image_path + ".raw", "w", 0o666)
+		//await raw_image_file.write(request.rawBody as Buffer);
+		//await raw_image_file.close()
 		try {
 			let img = sharp(request.rawBody as Buffer);
 			img.resize({
