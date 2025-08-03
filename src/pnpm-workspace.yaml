@@ -1,0 +1,4 @@
+pacakges:
+  - ./*
+
+nodeLinker: hoisted

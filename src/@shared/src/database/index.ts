@@ -6,7 +6,7 @@
 //   By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+        //
 //                                                +#+#+#+#+#+   +#+           //
 //   Created: 2025/07/28 17:36:22 by maiboyer          #+#    #+#             //
-//   Updated: 2025/07/30 21:19:05 by maiboyer         ###   ########.fr       //
+//   Updated: 2025/08/03 13:36:25 by maiboyer         ###   ########.fr       //
 //                                                                            //
 // ************************************************************************** //
 
@@ -66,20 +66,6 @@ export class Database {
 		this.st.set(query, st);
 		return st;
 	}
-
-	public createUser(user: string): Result<UUIDv7, DBUserExists> {
-		const st = this.prepare('INSERT INTO users VALUES (?, ?) RETURNING id');
-
-		try {
-			st.get(newUUIDv7(), user)
-		}
-		catch (e: any) {
-			console.log(e)
-			console.log(typeof e)
-		}
-		return Result.ok(newUUIDv7());
-	}
-
 }
 
 // When using .decorate you have to specify added properties for Typescript
@@ -96,8 +82,7 @@ export type DatabaseOption = {
 export const uDatabase = fp<DatabaseOption>(async function(
 	_fastify: FastifyInstance,
 	_options: DatabaseOption) {
-
-
+	console.log("Database has been hooked up to fastify ?!");
 });
 
 export default uDatabase;

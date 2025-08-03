@@ -1,29 +1,34 @@
-FROM node:24-alpine as builder
+FROM guergeiro/pnpm:22-10-alpine as builder
 
+RUN apk add jq;
 ARG SERVICE
-
-RUN apk add jq python3 musl-dev gcc g++ make;
 
 WORKDIR /build
 COPY ./@shared/package.json    /build/@shared/package.json
 COPY ./${SERVICE}/package.json /build/service/package.json
+COPY ./${SERVICE}/package.json /build/package.json
 COPY ./tsconfig.base.json      /build/tsconfig.base.json
+COPY ./pnpm-workspace.yaml     /build/pnpm-workspace.yaml
 
-RUN echo "{\"name\":\"workspace\", \"workspaces\": [\"@shared\", \"${SERVICE}\" ]}"  | jq . >/build/package.json;
-RUN npm install && npm install --prefix=/build/service;
+RUN pnpm install;
+RUN ls -a *;
 
 COPY ./@shared/    /build/@shared/
 COPY ./${SERVICE}/ /build/service/
 
-RUN (cd /build/service && npm run build:prod) \
-	&& jq -s '.[0] * .[1]' /build/@shared/package.json /build/service/package.json >/dist/package.json;
+RUN cd /build/service                                             && \
+	pnpm run build:prod                                           && \
+	jq -s '.[0] * .[1]' /build/*/package.json >/dist/package.json && \
+	cp /build/pnpm-workspace.yaml  /dist/pnpm-workspace.yaml      && \
+	true;
 
-FROM node:24
+
+FROM guergeiro/pnpm:22-10-slim
 
 WORKDIR /src
 
 COPY --from=builder /dist /src
 
-RUN npm install;
+RUN pnpm install --prod;
 CMD ["node", "/src/run.cjs"]
 

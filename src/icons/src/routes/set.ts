@@ -2,7 +2,6 @@ import { FastifyPluginAsync } from 'fastify'
 import { join } from 'node:path'
 import { open } from 'node:fs/promises'
 import sharp from 'sharp'
-import { newUUIDv7 } from '@shared/uuid'
 import rawBody from 'raw-body'
 
 const route: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
@@ -12,7 +11,7 @@ const route: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	// we register a route handler for: `/<USERID_HERE>`
 	// it sets some configuration options, and set the actual function that will handle the request
 
-	fastify.addContentTypeParser('*', function(request, payload, done) {
+	fastify.addContentTypeParser('*', function(request, payload, done: any) {
 		done()
 	});
 

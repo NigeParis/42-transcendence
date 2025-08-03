@@ -3,8 +3,11 @@ import fastifyFormBody from '@fastify/formbody'
 import fastifyMultipart from '@fastify/multipart'
 import { mkdir } from 'node:fs/promises'
 import fp from 'fastify-plugin'
+import * as db from '@shared/database'
 
+// @ts-ignore: import.meta.glob is a vite thing. Typescript doesn't know this...
 const plugins = import.meta.glob('./plugins/**/*.ts', { eager: true });
+// @ts-ignore: import.meta.glob is a vite thing. Typescript doesn't know this...
 const routes = import.meta.glob('./routes/**/*.ts', { eager: true });
 
 
@@ -21,13 +24,13 @@ const app: FastifyPluginAsync = async (
 ): Promise<void> => {
 	// Place here your custom code!
 	for (const plugin of Object.values(plugins)) {
-		void fastify.register(plugin, {});
+		void fastify.register(plugin as any, {});
 	}
 	for (const route of Object.values(routes)) {
-		void fastify.register(route, {});
+		void fastify.register(route as any, {});
 	}
 
-	//void fastify.register(MyPlugin, {})
+	void fastify.register(db.uDatabase as any, {})
 	void fastify.register(fastifyFormBody, {})
 	void fastify.register(fastifyMultipart, {})
 
