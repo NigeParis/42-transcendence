@@ -11,7 +11,6 @@ COPY ./tsconfig.base.json      /build/tsconfig.base.json
 COPY ./pnpm-workspace.yaml     /build/pnpm-workspace.yaml
 
 RUN pnpm install;
-RUN ls -a *;
 
 COPY ./@shared/    /build/@shared/
 COPY ./${SERVICE}/ /build/service/
