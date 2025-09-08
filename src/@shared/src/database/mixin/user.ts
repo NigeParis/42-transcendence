@@ -104,7 +104,7 @@ export const UserImpl: Omit<IUserDb, keyof Database> = {
 		if (!isNullish(otp))
 			return otp;
 		let otpGen = new Otp();
-		const res: SqliteReturn = this.prepare("UPDATE OR IGNORE user SET otp = @otp WHERE id = @id RETURNING otp")
+		const res: any = this.prepare("UPDATE OR IGNORE user SET otp = @otp WHERE id = @id RETURNING otp")
 			.get({ id, otp: otpGen.secret });
 		return res?.otp;
 	},

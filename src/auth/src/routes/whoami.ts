@@ -16,6 +16,7 @@ const route: FastifyPluginAsync = async (fastify, _opts): Promise<void> => {
 		"/api/auth/whoami",
 		{ schema: { response: { "2xx": WhoAmIRes } }, config: { requireAuth: true } },
 		async function(req, _res) {
+			if (isNullish(req.authUser))
 				return makeResponse("failure", "whoami.failure.generic")
 			return makeResponse("success", "whoami.success", { name: req.authUser.name })
 		},
