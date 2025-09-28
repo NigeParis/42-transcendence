@@ -12,26 +12,27 @@ permissions:
   contents: read
 
 jobs:
-  name: Build & Lint
-  runs-on: ubuntu-latest
+  build:
+    name: Build & Typecheck
+    runs-on: ubuntu-latest
 
-  steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Setup Node
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'pnpm'
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v3
-      with:
-        version: 8
-        run_install: false
-    - name: Install dependencies with pnpm
-      run: pnpm --prefix=./src/ install --frozen-lockfile
-    - name: Check linting
-      run: pnpm --prefix=./src/ exec eslint . --max-warnings=0
-    - name: Build
-      run: pnpm --prefix=./src/ run build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+          run_install: false
+      - name: Install dependencies with pnpm
+        run: pnpm --prefix=./src/ install --frozen-lockfile
+      - name: Check linting
+        run: pnpm --prefix=./src/ exec eslint . --max-warnings=0
+      - name: Build
+        run: pnpm --prefix=./src/ run build
 
