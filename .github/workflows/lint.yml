@@ -28,10 +28,12 @@ jobs:
         with:
           version: 10
           run_install: false
+      - name: Directory src
+        run: cd ./src
       - name: Install dependencies with pnpm
-        run: pnpm --prefix=./src/ install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
       - name: Check linting
-        run: pnpm --prefix=./src/ exec eslint . --max-warnings=0
+        run: pnpm exec eslint . --max-warnings=0
       - name: Build
-        run: pnpm --prefix=./src/ run build
+        run: pnpm run build
 
