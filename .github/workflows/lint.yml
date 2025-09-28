@@ -30,7 +30,7 @@ jobs:
           run_install: false
       - name: Install dependencies with pnpm
         working-directory: ./src
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
       - name: Check linting
         working-directory: ./src
         run: pnpm exec eslint . --max-warnings=0
