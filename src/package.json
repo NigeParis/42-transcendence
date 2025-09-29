@@ -17,7 +17,7 @@
     "fclean": "rimraf \"**/dist\"",
     "clean": "rimraf \"**/node_modules\"",
     "install-all": "npm install",
-    "prepare": "husky"
+    "dev:prepare": "husky"
   },
   "devDependencies": {
     "rimraf": "^5.0.1",
