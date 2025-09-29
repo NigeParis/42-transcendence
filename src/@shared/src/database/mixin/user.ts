@@ -39,7 +39,7 @@ export const UserImpl: Omit<IUserDb, keyof Database> = {
 		return userFromRow(
 			this.prepare(
 				'SELECT * FROM user WHERE name = @name LIMIT 1',
-			).get({ name }),
+			).get({ name }) as (Partial<User> | undefined),
 		);
 	},
 
@@ -54,7 +54,7 @@ export const UserImpl: Omit<IUserDb, keyof Database> = {
 		return userFromRow(
 			this.prepare('SELECT * FROM user WHERE id = @id LIMIT 1').get({
 				id,
-			}) as SqliteReturn,
+			}) as (Partial<User> | undefined),
 		);
 	},
 
@@ -71,7 +71,7 @@ export const UserImpl: Omit<IUserDb, keyof Database> = {
 		return userFromRow(
 			this.prepare(
 				'INSERT OR FAIL INTO user (name, password) VALUES (@name, @password) RETURNING *',
-			).get({ name, password }),
+			).get({ name, password }) as (Partial<User> | undefined),
 		);
 	},
 
@@ -154,7 +154,7 @@ async function hashPassword(
  *
  * @returns The user if it exists, undefined otherwise
  */
-function userFromRow(row: Partial<User>): User | undefined {
+function userFromRow(row?: Partial<User>): User | undefined {
 	if (isNullish(row)) return undefined;
 	if (isNullish(row.id)) return undefined;
 	if (isNullish(row.name)) return undefined;
