@@ -1,4 +1,4 @@
-import { Type } from "@sinclair/typebox";
+import { TObject, TProperties, Type } from '@sinclair/typebox';
 
 /**
  * @description Represent a message key
@@ -12,7 +12,7 @@ import { Type } from "@sinclair/typebox";
  * @example `pong.you.lost`
  */
 export type MessageKey = string;
-export type ResponseBase<T = {}> = {
+export type ResponseBase<T = object> = {
 	kind: string,
 	msg: MessageKey,
 	payload?: T,
@@ -20,30 +20,31 @@ export type ResponseBase<T = {}> = {
 
 /**
  * @description Builds a response from a `kind`, `key` and an arbitrary payload
- * 
+ *
  * * USE THIS FUNCTION TO ALLOW GREPING :) *
  *
  * @example makeResponse("failure", "login.failure.invalid")
  * @example makeResponse("success", "login.success", { token: "supersecrettoken" })
  */
-export function makeResponse<T = {}>(kind: string, key: MessageKey, payload?: T): ResponseBase<T> {
-	console.log(`making response {kind: ${JSON.stringify(kind)}; key: ${JSON.stringify(key)}}`)
-	return { kind, msg: key, payload }
+export function makeResponse<T = object>(kind: string, key: MessageKey, payload?: T): ResponseBase<T> {
+	console.log(`making response {kind: ${JSON.stringify(kind)}; key: ${JSON.stringify(key)}}`);
+	return { kind, msg: key, payload };
 }
 
 
-/** 
+/**
  * @description Create a typebox Type for a response.
- * 
+ *
  * @example typeResponse("failure", ["login.failure.invalid", "login.failure.generic", "login.failure.missingPassword"])
  * @example typeResponse("otpRequired", "login.otpRequired", { token: Type.String() })
  * @example typeResponse("success", "login.success", { token: Type.String() })
  */
-export function typeResponse(kind: string, key: MessageKey | MessageKey[], payload?: any): any {
+export function typeResponse(kind: string, key: MessageKey | MessageKey[], payload?: TProperties): TObject<TProperties> {
 	let tKey;
 	if (key instanceof Array) {
 		tKey = Type.Union(key.map(l => Type.Const(l)));
-	} else {
+	}
+	else {
 		tKey = Type.Const(key);
 	}
 
@@ -51,10 +52,9 @@ export function typeResponse(kind: string, key: MessageKey | MessageKey[], paylo
 		kind: Type.Const(kind),
 		msg: tKey,
 	};
-	if (payload !== undefined)
-		Object.assign(Ty, { payload: Type.Object(payload) })
+	if (payload !== undefined) {Object.assign(Ty, { payload: Type.Object(payload) });}
 
-	return Type.Object(Ty)
+	return Type.Object(Ty);
 }
 
 /**
@@ -69,5 +69,5 @@ export function typeResponse(kind: string, key: MessageKey | MessageKey[], paylo
  * @example assert_equal(isNullish(false), false);
  */
 export function isNullish<T>(v: T | undefined | null): v is (null | undefined) {
-	return v === null || v === undefined
+	return v === null || v === undefined;
 }

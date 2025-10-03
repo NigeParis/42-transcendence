@@ -1,7 +1,7 @@
-import type { Database, SqliteReturn } from "./_base";
-import { Otp } from "@shared/auth";
-import { isNullish } from "@shared/utils";
-import * as bcrypt from "bcrypt";
+import type { Database, SqliteReturn } from './_base';
+import { Otp } from '@shared/auth';
+import { isNullish } from '@shared/utils';
+import * as bcrypt from 'bcrypt';
 
 // never use this directly
 
@@ -38,8 +38,8 @@ export const UserImpl: Omit<IUserDb, keyof Database> = {
 	getUserFromName(this: IUserDb, name: string): User | undefined {
 		return userFromRow(
 			this.prepare(
-				"SELECT * FROM user WHERE name = @name LIMIT 1",
-			).get({ name }),
+				'SELECT * FROM user WHERE name = @name LIMIT 1',
+			).get({ name }) as (Partial<User> | undefined),
 		);
 	},
 
@@ -52,9 +52,9 @@ export const UserImpl: Omit<IUserDb, keyof Database> = {
 	 */
 	getUserFromRawId(this: IUserDb, id: number): User | undefined {
 		return userFromRow(
-			this.prepare("SELECT * FROM user WHERE id = @id LIMIT 1").get({
+			this.prepare('SELECT * FROM user WHERE id = @id LIMIT 1').get({
 				id,
-			}) as SqliteReturn,
+			}) as (Partial<User> | undefined),
 		);
 	},
 
@@ -70,8 +70,8 @@ export const UserImpl: Omit<IUserDb, keyof Database> = {
 		password = await hashPassword(password);
 		return userFromRow(
 			this.prepare(
-				"INSERT OR FAIL INTO user (name, password) VALUES (@name, @password) RETURNING *",
-			).get({ name, password }),
+				'INSERT OR FAIL INTO user (name, password) VALUES (@name, @password) RETURNING *',
+			).get({ name, password }) as (Partial<User> | undefined),
 		);
 	},
 
@@ -88,30 +88,29 @@ export const UserImpl: Omit<IUserDb, keyof Database> = {
 		password = await hashPassword(password);
 		return userFromRow(
 			this.prepare(
-				"UPDATE OR FAIL user SET password = @password WHERE id = @id RETURNING *",
+				'UPDATE OR FAIL user SET password = @password WHERE id = @id RETURNING *',
 			).get({ password, id }) as SqliteReturn,
 		);
 	},
 
 	getUserOtpSecret(this: IUserDb, id: UserId): string | undefined {
-		let otp: any = this.prepare("SELECT otp FROM user WHERE id = @id LIMIT 1").get({ id }) as SqliteReturn;
+		const otp = this.prepare('SELECT otp FROM user WHERE id = @id LIMIT 1').get({ id }) as ({ otp: string } | null | undefined);
 		if (isNullish(otp?.otp)) return undefined;
 		return otp.otp;
 	},
 
 	ensureUserOtpSecret(this: IUserDb, id: UserId): string | undefined {
-		let otp = this.getUserOtpSecret(id);
-		if (!isNullish(otp))
-			return otp;
-		let otpGen = new Otp();
-		const res: any = this.prepare("UPDATE OR IGNORE user SET otp = @otp WHERE id = @id RETURNING otp")
-			.get({ id, otp: otpGen.secret });
+		const otp = this.getUserOtpSecret(id);
+		if (!isNullish(otp)) { return otp; }
+		const otpGen = new Otp();
+		const res = this.prepare('UPDATE OR IGNORE user SET otp = @otp WHERE id = @id RETURNING otp')
+			.get({ id, otp: otpGen.secret }) as ({ otp: string } | null | undefined);
 		return res?.otp;
 	},
 
 	deleteUserOtpSecret(this: IUserDb, id: UserId): void {
-		this.prepare("UPDATE OR IGNORE user SET otp = NULL WHERE id = @id").run({ id });
-	}
+		this.prepare('UPDATE OR IGNORE user SET otp = NULL WHERE id = @id').run({ id });
+	},
 };
 
 export type UserId = number & { readonly __brand: unique symbol };
@@ -155,12 +154,14 @@ async function hashPassword(
  *
  * @returns The user if it exists, undefined otherwise
  */
-function userFromRow(row: any): User | undefined {
+function userFromRow(row?: Partial<User>): User | undefined {
 	if (isNullish(row)) return undefined;
+	if (isNullish(row.id)) return undefined;
+	if (isNullish(row.name)) return undefined;
 	return {
-		id: row.id as UserId,
-		name: row.name || undefined,
-		password: row.password || undefined,
-		otp: row.otp || undefined,
+		id: row.id,
+		name: row.name,
+		password: row.password ?? undefined,
+		otp: row.otp ?? undefined,
 	};
-} 
+}

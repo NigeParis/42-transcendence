@@ -1,8 +1,8 @@
-import { defineConfig } from 'vite'
-import tsconfigPaths from 'vite-tsconfig-paths'
-import nodeExternals from 'rollup-plugin-node-externals'
-import path from 'node:path'
-import fs from 'node:fs'
+import { defineConfig } from 'vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
+import nodeExternals from 'rollup-plugin-node-externals';
+import path from 'node:path';
+import fs from 'node:fs';
 
 function collectDeps(...pkgJsonPaths) {
 	const allDeps = new Set();
@@ -20,27 +20,32 @@ function collectDeps(...pkgJsonPaths) {
 
 const externals = collectDeps(
 	'./package.json',
-	'../@shared/package.json'
+	'../@shared/package.json',
 );
 
 
 export default defineConfig({
-	root: __dirname, // service root
+	root: __dirname,
+	// service root
 	plugins: [tsconfigPaths(), nodeExternals()],
 	build: {
 		ssr: true,
 		outDir: 'dist',
 		emptyOutDir: true,
 		lib: {
-			entry: path.resolve(__dirname, 'src/run.ts'), // adjust main entry
-			formats: ['cjs'], // CommonJS for Node.js
+			entry: path.resolve(__dirname, 'src/run.ts'),
+			// adjust main entry
+			formats: ['cjs'],
+			// CommonJS for Node.js
 			fileName: () => 'index.js',
 		},
 		rollupOptions: {
 			external: externals,
 		},
-		target: 'node22', // or whatever Node version you use
+		target: 'node22',
+		// or whatever Node version you use
 		sourcemap: false,
-		minify: true, // for easier debugging
-	}
-})
+		minify: true,
+		// for easier debugging
+	},
+});

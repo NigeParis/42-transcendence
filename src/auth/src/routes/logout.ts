@@ -1,10 +1,12 @@
-import { FastifyPluginAsync } from "fastify";
+import { FastifyPluginAsync } from 'fastify';
 
 const route: FastifyPluginAsync = async (fastify, _opts): Promise<void> => {
+	void _opts;
 	fastify.post(
-		"/api/auth/logout",
+		'/api/auth/logout',
 		async function(_req, res) {
-			return res.clearCookie("token").send("{}")
+			void _req;
+			return res.clearCookie('token').send('{}');
 		},
 	);
 };
