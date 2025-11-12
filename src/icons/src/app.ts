@@ -46,7 +46,7 @@ const app: FastifyPluginAsync = async (
 		fastify2.decorate('image_store', image_store);
 		await mkdir(fastify2.image_store, { recursive: true });
 	}));
-
+	fastify.get('/monitoring', () => 'Ok');
 };
 
 export default app;
