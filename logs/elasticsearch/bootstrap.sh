@@ -16,4 +16,4 @@ setup_ilm() {
 }
 
 setup_ilm &
-exec /usr/local/bin/docker-entrypoint.sh eswrapper >/dev/null
+exec /usr/local/bin/docker-entrypoint.sh eswrapper

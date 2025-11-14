@@ -6,11 +6,10 @@ kibana_setup() {
 		sleep 2
 	done
 
-	curl -v -X POST "localhost:5601/api/saved_objects/index-pattern/docker-logs" \
+	curl -v -X POST "localhost:5601/api/saved_objects/_import?overwrite=true" \
 		-H "kbn-xsrf: true" \
-		-H "Content-Type: application/json" \
-		-d '@/setup/docker-logs.json'
+		--form file='@/setup/export.ndjson'
 	exit 0
 }
 kibana_setup &
-exec /usr/local/bin/kibana-docker >/dev/null
+exec /usr/local/bin/kibana-docker
