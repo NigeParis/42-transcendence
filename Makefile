@@ -1,4 +1,4 @@
-# **************************************************************************** #make
+# **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/11/10 01:05:11 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/11/14 15:14:34 by rparodi          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,6 +32,7 @@ ECHO = /usr/bin/env echo
 all:
 	@$(MAKE) --no-print-directory header
 	@$(MAKE) --no-print-directory -f ./Docker.mk
+	@$(MAKE) --no-print-directory -f ./Docker.mk logs-setup
 	@$(MAKE) --no-print-directory footer
 
 build:
