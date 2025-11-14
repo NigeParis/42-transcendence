@@ -165,6 +165,61 @@ services:
     ports:
       - "9115:9115"
     restart: unless-stopped
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "{{.Name}}"
+
+
+
+  ###############
+  #     LOGS    #
+  ###############
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.23
+    container_name: logs-elasticsearch
+    networks:
+      - monitoring
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    volumes:
+      - ./logs/elasticsearch/data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    restart: unless-stopped
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.17.23
+    container_name: logs-logstash
+    depends_on:
+      - elasticsearch
+    networks:
+      - monitoring
+    volumes:
+      - ./logs/logstash/pipeline:/usr/share/logstash/pipeline
+    ports:
+      - "12201:12201/udp"
+    restart: unless-stopped
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.23
+    container_name: logs-kibana
+    depends_on:
+      - elasticsearch
+    networks:
+      - monitoring
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - SERVER_PUBLICBASEURL=http://local.maix.me:5601
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    ports:
+      - "5601:5601"
+    restart: unless-stopped
 
 volumes:
   images-volume:
