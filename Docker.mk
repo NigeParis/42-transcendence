@@ -6,7 +6,7 @@
 #    By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/11 18:10:26 by maiboyer          #+#    #+#              #
-#    Updated: 2025/11/14 17:41:06 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/11/14 18:54:16 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,7 +22,6 @@ down:
 	docker compose down
 
 build:
-	@mkdir -p ./logs/elasticsearch/data/
 	docker compose build
 
 re:
