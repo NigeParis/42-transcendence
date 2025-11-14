@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/11/14 15:14:34 by rparodi          ###   ########.fr        #
+#    Updated: 2025/11/14 17:40:57 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,7 +32,6 @@ ECHO = /usr/bin/env echo
 all:
 	@$(MAKE) --no-print-directory header
 	@$(MAKE) --no-print-directory -f ./Docker.mk
-	@$(MAKE) --no-print-directory -f ./Docker.mk logs-setup
 	@$(MAKE) --no-print-directory footer
 
 build:
@@ -158,4 +157,4 @@ fnginx: nginx-dev/nginx-selfsigned.crt nginx-dev/nginx-selfsigned.key
 	wait
 
 #	phony
-.PHONY: all clean fclean re header footer npm@install npm@clean npm@fclean npm@build sql tmux
+.PHONY: all clean fclean re header footer npm@install npm@clean npm@fclean npm@build sql tmux logs

@@ -249,9 +249,11 @@ services:
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
     volumes:
-      - ./logs/elasticsearch/data:/usr/share/elasticsearch/data
+      - elastic-data:/usr/share/elasticsearch/data
+      - ./logs/elasticsearch:/setup
     ports:
       - "9200:9200"
+    command: ["/setup/bootstrap.sh"]
     restart: unless-stopped
 
   logstash:
@@ -281,6 +283,9 @@ services:
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
     ports:
       - "5601:5601"
+    volumes:
+      - ./logs/kibana:/setup
+    command: ["/setup/bootstrap.sh"]
     restart: unless-stopped
 
 volumes:
@@ -288,3 +293,4 @@ volumes:
   sqlite-volume:
   static-volume:
   grafana-data:
+  elastic-data:

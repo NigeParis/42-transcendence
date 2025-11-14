@@ -6,9 +6,11 @@
 #    By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/11 18:10:26 by maiboyer          #+#    #+#              #
-#    Updated: 2025/11/14 16:13:22 by rparodi          ###   ########.fr        #
+#    Updated: 2025/11/14 17:41:06 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
+
+.PHONY: logs
 
 all: build
 	docker compose up -d
