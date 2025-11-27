@@ -14,7 +14,7 @@ const color = {
 };
 
 
-// get the name of the machine useed to connect 
+// get the name of the machine used to connect 
 const machineHostName = window.location.hostname;
 console.log('connect to login at %chttps://' + machineHostName + ':8888/app/login',color.yellow);
 
