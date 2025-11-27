@@ -30,7 +30,8 @@ document.addEventListener('ft:pageChange', () => {
 
 
 function getSocket(): Socket {
-	let addressHost = `wss://${machineHostName}:8888`;
+	//let addressHost = `wss://${machineHostName}:8888`;
+	let addressHost = `wss://localhost:8888`;
 	if (__socket === undefined)
 
 		__socket = io(addressHost, {
