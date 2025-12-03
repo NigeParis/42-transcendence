@@ -18,10 +18,11 @@ export const color = {
 
 // shows address for connection au server transcendance
 const session = process.env.SESSION_MANAGER ?? '';
-const part = session.split('/')[1];
-const machineName = part.split('.')[0];
-console.log(color.yellow, 'Connect at : https://' + machineName + ':8888/app/login');
-
+if (session) {
+	const part = session.split('/')[1];
+	const machineName = part.split('.')[0];
+	console.log(color.yellow, 'Connect at : https://' + machineName + ':8888/app/login');
+}
 
 declare const __SERVICE_NAME: string;
 
