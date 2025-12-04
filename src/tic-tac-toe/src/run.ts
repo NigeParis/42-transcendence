@@ -1,8 +1,10 @@
 // @file run.ts
+// @brief The entrypoint to the service.
 
 // Entry point of the microservice, ran by the Dockerfile.
 
 import fastify, { FastifyInstance } from 'fastify';
+import app from './app';
 // TODO: Import the microservice app
 
 
@@ -18,7 +20,7 @@ const start = async () => {
 			process.exit(143);
 		});
 		// TODO: Uncomment when app.ts will be import-able.
-		// await fastInst.register(app);
+		await fastInst.register(app);
 		await fastInst.listen({ port: 80, host: '0.0.0.0' });
 	}
 	catch (err) {
