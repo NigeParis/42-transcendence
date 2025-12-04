@@ -34,6 +34,7 @@ interface ClientInfo {
 }
 
 export type ClientMessage = {
+	command: string
 	destination: string;
 	user: string;
 	text: string;
@@ -269,6 +270,7 @@ async function onReady(fastify: FastifyInstance) {
 		  if (!clientName) return;
 		  	console.log(color.green, `Client logging out: ${clientName} (${socket.id})`);
 		  	const obj = {
+				command: '',
 				destination: 'system-info',
 		    	type: 'chat' as const,
 		    	user: clientName,
@@ -295,6 +297,7 @@ async function onReady(fastify: FastifyInstance) {
 
 			if (clientName !== null) {
 				const obj = {
+					command: '',
 					destination: 'system-info',
 					type: 'chat',
 					user: clientName,
@@ -319,6 +322,7 @@ async function onReady(fastify: FastifyInstance) {
 
 			if (clientName !== null) {
 				const obj = {
+					command: '',
 					destination: 'system-info',
 					type: 'chat',
 					user: clientName,
@@ -364,6 +368,7 @@ async function onReady(fastify: FastifyInstance) {
     		);
     		if (clientName !== null) {
     		    const obj = {
+					command: '',
 					destination: 'system-info',
     		        type: 'chat',
     		        user: clientName,
