@@ -35,17 +35,17 @@ const route: FastifyPluginAsync = async (fastify): Promise<void> => {
 		},
 		async (req, res) => {
 
-			const users = fastify.db.getAllUsers();
-			console.log('ALL USERS EVER CONNECTED:', users);
-			if (!users) return;
-			for (const user of users) {
-				console.log(color.yellow, 'USER:', user.name);
-			}
-			// const usersBlocked = fastify.db.getAllBlockedUsers();
-			// console.log(color.red, "ALL BLOCKED USERS:", usersBlocked);
-			fastify.db.addBlockedUserFor(users[0].id, users[1].id);
-			const usersBlocked2 = fastify.db.getAllBlockedUsers();
-			console.log(color.green, 'ALL BLOCKED USERS:', usersBlocked2);
+			// const users = fastify.db.getAllUsers();
+			// console.log('ALL USERS EVER CONNECTED:', users);
+			// if (!users) return;
+			// for (const user of users) {
+			// 	console.log(color.yellow, 'USER:', user.name);
+			// }
+			// // const usersBlocked = fastify.db.getAllBlockedUsers();
+			// // console.log(color.red, "ALL BLOCKED USERS:", usersBlocked);
+			// fastify.db.addBlockedUserFor(users[0].id, users[1].id);
+			// const usersBlocked2 = fastify.db.getAllBlockedUsers();
+			// console.log(color.green, 'ALL BLOCKED USERS:', usersBlocked2);
 			res.makeResponse(200, 'success', 'CCChat.success', { name: 'name', 'id': req.authUser!.id, guest: false });
 		},
 	);
