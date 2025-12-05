@@ -159,8 +159,11 @@
 div-buddies-list {
   @apply
   text-black
-  whitespace-pre-wrap;
-
+  whitespace-pre-wrap
+	cursor-pointer 
+	hover:text-blue-500 
+	transition-colors 
+	duration-150;
 }
 
 p {
@@ -180,4 +183,10 @@ div-notlog {
   text-red-800
   text-3xl
   text-center;
+}
+
+div-private {
+  @apply
+  text-blue-800;
+
 }

@@ -83,6 +83,8 @@ declare module 'fastify' {
 		io: Server<{
 			hello: (message: string) => string;
 			MsgObjectServer: (data: { message: ClientMessage }) => void;
+			privMessage: (data: string) => void;
+			privMessageCopy: (msg: string) => void;
 			message: (msg: string) => void;
 			listBud: (msg: string) => void;
 			testend: (sock_id_client: string) => void;
@@ -179,6 +181,33 @@ async function onReady(fastify: FastifyInstance) {
 				console.log(' Target socket ID:', s.id);
 				console.log(' Target rooms:', [...s.rooms]);
 				console.log(' Sender socket ID:', sender ?? 'none');
+			}
+		});
+	}
+
+
+
+	function sendPrivMessage(data: ClientMessage, sender?: string) {
+		fastify.io.fetchSockets().then((sockets) => {
+			const senderSocket = sockets.find(s => s.id === sender);
+			for (const s of sockets) {
+				if (s.id === sender) continue;
+				const clientInfo = clientChat.get(s.id);
+				if (!clientInfo?.user) {
+					console.log(color.yellow, `Skipping socket ${s.id} (no user found)`);
+					continue;
+				}
+				let user: string = clientChat.get(s.id)?.user ?? "";
+				const atUser = `@${user}`;
+				if (atUser !== data.command || atUser === "") {
+					console.log(color.yellow, `User: '${atUser}' (No user the same is found): '${data.command}' `);
+					continue;
+				}
+				s.emit('MsgObjectServer', { message: data });
+				if (senderSocket)
+					senderSocket.emit('privMessageCopy',`${data.command}: ${data.text}🔒`);
+				// Debug logs
+				console.log(color.green, 'Priv to:', clientInfo.user);
 			}
 		});
 	}
@@ -333,6 +362,33 @@ async function onReady(fastify: FastifyInstance) {
 				};
 				console.log(color.blue, 'BROADCASTS OUT :', obj.SenderWindowID);
 				broadcast(obj, obj.SenderWindowID);
+				//   clientChat.delete(obj.user);
+			}
+		});
+
+
+		socket.on('privMessage', (data) => {
+			const clientName: string  = clientChat.get(socket.id)?.user || "";
+			const prvMessage: ClientMessage = JSON.parse(data) || "";
+			console.log(
+				color.blue,
+				`DEBUG LOG: ClientName: '${clientName}' id Socket: '${socket.id}' target Name:`,
+				prvMessage.command
+			);
+
+			if (clientName !== null) {
+				const obj = {
+					command: prvMessage.command,
+					destination: 'privateMsg',
+					type: 'chat',
+					user: clientName,
+					token: '',
+					text: prvMessage.text,
+					timestamp: Date.now(),
+					SenderWindowID: socket.id,
+				};
+				console.log(color.blue, 'PRIV MESSAGE OUT :', obj.SenderWindowID);
+				sendPrivMessage(obj, obj.SenderWindowID);
 				//   clientChat.delete(obj.user);
 			}
 		});
