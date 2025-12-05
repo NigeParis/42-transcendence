@@ -132,16 +132,16 @@ async function onReady(fastify: FastifyInstance) {
 				seen.add(username.user);
 				count++;
 				// console.log(color.green,"count: ", count);
-				console.log(color.yellow, 'Client:', color.reset, username.user);
+				// console.log(color.yellow, 'Client:', color.reset, username.user);
 
 				const targetSocketId = target;
 				io.to(targetSocketId!).emit('listBud', username.user);
-				console.log(
-					color.yellow,
-					'Chat Socket ID:',
-					color.reset,
-					socketId,
-				);
+				// console.log(
+				// 	color.yellow,
+				// 	'Chat Socket ID:',
+				// 	color.reset,
+				// 	socketId,
+				// );
 				continue;
 			}
 
@@ -203,11 +203,13 @@ async function onReady(fastify: FastifyInstance) {
 					console.log(color.yellow, `User: '${atUser}' (No user the same is found): '${data.command}' `);
 					continue;
 				}
-				s.emit('MsgObjectServer', { message: data });
-				if (senderSocket)
-					senderSocket.emit('privMessageCopy',`${data.command}: ${data.text}🔒`);
-				// Debug logs
-				console.log(color.green, 'Priv to:', clientInfo.user);
+				if (data.text !== "") {
+					s.emit('MsgObjectServer', { message: data });
+					if (senderSocket)
+						senderSocket.emit('privMessageCopy',`${data.command}: ${data.text}🔒`);
+					// Debug logs
+				}
+				console.log(color.green, 'Priv to:', data.text);
 			}
 		});
 	}
@@ -361,6 +363,7 @@ async function onReady(fastify: FastifyInstance) {
 					SenderWindowID: socket.id,
 				};
 				console.log(color.blue, 'BROADCASTS OUT :', obj.SenderWindowID);
+
 				broadcast(obj, obj.SenderWindowID);
 				//   clientChat.delete(obj.user);
 			}

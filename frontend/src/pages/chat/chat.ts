@@ -58,7 +58,7 @@ function addMessage(text: string) {
 	return ;
 };
 
-async function isLoggedIn() {
+function isLoggedIn() {
 	return getUser() || null;
 };
 
@@ -74,11 +74,13 @@ async function windowStateHidden() {
 	socketId.emit('client_left', {
 		user: userName?.name,
 		why: 'tab window hidden - socket not dead',
-	});
+	});	
 	return;
 };
 	
-async function windowStateVisable() {		
+async function windowStateVisable() {
+
+	const buddies = document.getElementById('div-buddies') as HTMLDivElement;		
 	const socketId = __socket || undefined;
 	let oldName = localStorage.getItem("oldName") || undefined;
 	console.log("%c WINDOW VISIBLE - oldName :'" + oldName + "'", color.green);
@@ -91,6 +93,9 @@ async function windowStateVisable() {
 		userName: oldName,
 		user: user?.name,
 	});
+	buddies.innerHTML = '';
+	buddies.textContent = '';
+	//connected(socketId);
 	setTitle('Chat Page');
 	return;
 };
@@ -128,21 +133,21 @@ async function listBuddies(buddies: HTMLDivElement, listBuddies: string) {
 
 	if (!buddies) return;
 	const sendtextbox = document.getElementById('t-chat-window') as HTMLButtonElement;
+	const buddiesElement = document.createElement("div-buddies-list");
+	buddiesElement.textContent = listBuddies + '\n';
+	const user = getUser()?.name ?? ""; 
 
-	const messageElement = document.createElement("div-buddies-list");
-	messageElement.textContent = listBuddies + '\n';
-	
-
-	// ✔ Add click-to-copy
-	messageElement.style.cursor = "pointer";          // optional visual hint
-	messageElement.addEventListener("click", () => {
+	buddiesElement.style.cursor = "pointer";
+	buddiesElement.addEventListener("click", () => {
 		navigator.clipboard.writeText(listBuddies);
-		sendtextbox.value = `@${listBuddies}: `;
-		console.log("Copied to clipboard:", listBuddies);
-		sendtextbox.focus();               // move cursor into the box
+		if (listBuddies !== user && user !== "") {
+			sendtextbox.value = `@${listBuddies}: `;
+			console.log("Copied to clipboard:", listBuddies);
+			sendtextbox.focus();
+		} 
 	});
 
-	buddies.appendChild(messageElement);
+	buddies.appendChild(buddiesElement);
 	buddies.scrollTop = buddies.scrollHeight;
 	console.log(`Added buddies: ${listBuddies}`);
 }
@@ -150,7 +155,7 @@ async function listBuddies(buddies: HTMLDivElement, listBuddies: string) {
 
 function waitSocketConnected(socket: Socket): Promise<void> {
     return new Promise(resolve => {
-        if (socket.connected) return resolve(); // already connected
+        if (socket.connected) return resolve();
         socket.on("connect", () => resolve());
     });
 };
@@ -176,10 +181,10 @@ function quitChat (socket: Socket) {
  
 };
 
-const bconnected = document.getElementById('b-help') as HTMLButtonElement;
-if (bconnected) {
-	bconnected.click();
-}
+// const bconnected = document.getElementById('b-help') as HTMLButtonElement;
+// if (bconnected) {
+// 	bconnected.click();
+// }
 
 function logout(socket: Socket) {
   socket.emit("logout");  // notify server
@@ -221,7 +226,7 @@ async function connected(socket: Socket): Promise<void> {
 		console.log('%coldUser:',color.yellow, oldUser);
 		if (loggedIn?.name === undefined) {console.log('');return ;}
 		oldUser =  loggedIn.name ?? "";
-		const res = await client.guestLogin();
+		// const res = await client.guestLogin();
 		let user = await updateUser();
 		console.log('%cUser?name:',color.yellow, user?.name);
 		localStorage.setItem("oldName", oldUser);
@@ -365,10 +370,10 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 	window.addEventListener("focus", () => {
 		//nst bwhoami = document.getElementById('b-whoami') as HTMLButtonElement;
 		if (window.location.pathname === '/app/chat') {
+			connected(socket);
 			console.log("%cWindow is focused on /chat:" + socket.id, color.green);
 			if (socket.id) {
 				windowStateVisable();
-				connected(socket);
 			}
 			toggle = true;
 		}
@@ -385,8 +390,7 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 	// setInterval(async () => {
 	// 	//connected(socket);
 	// },10000); // every 10 seco	
-
-	socket.on('listBud', (myBuddies: string) => {
+	socket.on('listBud', async (myBuddies: string)  => {
 		const buddies = document.getElementById('div-buddies') as HTMLDivElement;
 		console.log('List buddies connected ', myBuddies);
 		listBuddies(buddies,myBuddies);
@@ -455,7 +459,6 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 								quitChat(socket);
     						    break;	
     						default:
-
 								const user = getUser()?.name;
 								// Ensure we have a user AND socket is connected
 								if (!user || !socket.connected) return;
