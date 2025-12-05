@@ -47,7 +47,6 @@ function getSocket(): Socket {
 	return __socket;
 };
 
-	
 function addMessage(text: string) {
 	const chatWindow = document.getElementById("t-chatbox") as HTMLDivElement;
 	if (!chatWindow) return;
@@ -58,7 +57,6 @@ function addMessage(text: string) {
 	console.log(`Added new message: ${text}`)
 	return ;
 };
-
 
 async function isLoggedIn() {
 	return getUser() || null;
@@ -80,14 +78,12 @@ async function windowStateHidden() {
 	return;
 };
 	
-	
 async function windowStateVisable() {		
 	const socketId = __socket || undefined;
 	let oldName = localStorage.getItem("oldName") || undefined;
 	console.log("%c WINDOW VISIBLE - oldName :'" + oldName + "'", color.green);
 	
 	if (socketId === undefined || oldName === undefined) {console.log("%SOCKET ID", color.red); return;}
-	// const res = await client.guestLogin();
 	let user = await updateUser();
 	if(user === null) return;
 	console.log("%cUserName :'" + user?.name + "'", color.green);
@@ -100,45 +96,84 @@ async function windowStateVisable() {
 };
 
 function parseCmdMsg(msgText: string): string[] | undefined {
-    if (!msgText?.trim()) {
-        console.log('%c DEBUG - in FN parseCmdMsg : msgText = ""', color.red);
-        return;
-    }
-    msgText = msgText.trim();
-    // Find the first space
-    const firstSpaceIndex = msgText.indexOf(' ');
-    const cmd = firstSpaceIndex === -1 ? msgText : msgText.slice(0, firstSpaceIndex);
-    const rest = firstSpaceIndex === -1 ? "" : msgText.slice(firstSpaceIndex + 1).trim();
-    const command: string[] = ["", ""];
-    if (!msgText.startsWith('@')) {
-        command[0] = "@msg";
-        command[1] = msgText;
-    } else {
-        command[0] = cmd;
-        command[1] = rest;
-    }
-    console.log('%c DEBUG - split msgText[0]:', color.red, command[0]);
-    console.log('%c DEBUG - split msgText[1]:', color.red, command[1]);
-    return command;
-};
 
-async function listBuddies(buddies: HTMLDivElement, listBuddies: string ) {
+	if (!msgText?.trim()) return;
+    msgText = msgText.trim();
+    const command: string[] = ['', ''];
+    if (!msgText.startsWith('@')) {
+        command[0] = '@msg';
+        command[1] = msgText;
+        return command;
+    }
+    const noArgCommands = ['@quit', '@cls', '@profile'];
+    if (noArgCommands.includes(msgText)) {
+        command[0] = msgText;
+        command[1] = '';
+        return command;
+    }
+    const colonIndex = msgText.indexOf(":");
+    if (colonIndex === -1) {
+        command[0] = msgText;
+        command[1] = '';
+        return command;
+    }
+    const cmd = msgText.slice(0, colonIndex).trim();        
+    const rest = msgText.slice(colonIndex + 1).trim();      
+    command[0] = cmd;
+    command[1] = rest;
+    return command;
+}
+
+async function listBuddies(buddies: HTMLDivElement, listBuddies: string) {
 
 	if (!buddies) return;
+	const sendtextbox = document.getElementById('t-chat-window') as HTMLButtonElement;
+
 	const messageElement = document.createElement("div-buddies-list");
 	messageElement.textContent = listBuddies + '\n';
+	
+
+	// ✔ Add click-to-copy
+	messageElement.style.cursor = "pointer";          // optional visual hint
+	messageElement.addEventListener("click", () => {
+		navigator.clipboard.writeText(listBuddies);
+		sendtextbox.value = `@${listBuddies}: `;
+		console.log("Copied to clipboard:", listBuddies);
+		sendtextbox.focus();               // move cursor into the box
+	});
+
 	buddies.appendChild(messageElement);
 	buddies.scrollTop = buddies.scrollHeight;
-	console.log(`Added buddies: ${listBuddies}`)
-	return ;
+	console.log(`Added buddies: ${listBuddies}`);
+}
 
-};
 
 function waitSocketConnected(socket: Socket): Promise<void> {
     return new Promise(resolve => {
         if (socket.connected) return resolve(); // already connected
         socket.on("connect", () => resolve());
     });
+};
+
+function quitChat (socket: Socket) {
+
+	try {
+		const systemWindow = document.getElementById('system-box') as HTMLDivElement;
+		const chatWindow = document.getElementById("t-chatbox") as HTMLDivElement;
+		if (socket) {
+			logout(socket);
+			setTitle('Chat Page');
+			systemWindow.innerHTML = "";
+			chatWindow.textContent = "";
+			connected(socket);
+		} else {
+			getSocket();
+		}
+	} catch (e) {
+		console.error("Quit Chat error:", e);
+		showError('Failed to Quit Chat: Unknown error');
+	}
+ 
 };
 
 const bconnected = document.getElementById('b-help') as HTMLButtonElement;
@@ -163,7 +198,7 @@ function broadcastMsg (socket: Socket, msgCommand: string[]): void {
 	if (user && socket?.connected) {
 		const message = {
 			command: msgCommand,
-			destination: "",
+			destination: '',
 			type: "chat",
 			user: user.name,
 			token: document.cookie,
@@ -178,27 +213,60 @@ function broadcastMsg (socket: Socket, msgCommand: string[]): void {
 
 async function connected(socket: Socket): Promise<void> {
 	
-	const buddies = document.getElementById('div-buddies') as HTMLDivElement;
-	const loggedIn = await isLoggedIn();
-	console.log('%cloggedIn:',color.blue, loggedIn?.name);
-	let oldUser = localStorage.getItem("oldName") ?? "";
-	console.log('%coldUser:',color.yellow, oldUser);
-	if (loggedIn?.name === undefined) {console.log('');return ;}
-	oldUser =  loggedIn.name ?? "";
-	const res = await client.guestLogin();
-	let user = await updateUser();
-	console.log('%cUser?name:',color.yellow, user?.name);
-	localStorage.setItem("oldName", oldUser);
-	buddies.textContent = "";
-	// if (chatWindow) {
-		// addMessage('@list - lists all connected users in the chat');
+	try {
+		const buddies = document.getElementById('div-buddies') as HTMLDivElement;
+		const loggedIn = await isLoggedIn();
+		console.log('%cloggedIn:',color.blue, loggedIn?.name);
+		let oldUser = localStorage.getItem("oldName") ?? "";
+		console.log('%coldUser:',color.yellow, oldUser);
+		if (loggedIn?.name === undefined) {console.log('');return ;}
+		oldUser =  loggedIn.name ?? "";
+		const res = await client.guestLogin();
+		let user = await updateUser();
+		console.log('%cUser?name:',color.yellow, user?.name);
+		localStorage.setItem("oldName", oldUser);
+		buddies.textContent = "";
 		socket.emit('list', {
 			oldUser: oldUser,
 			user: user?.name,
 		});
-	// }
-
+	} catch (e) {
+		console.error("Login error:", e);
+		showError('Failed to login: Unknown error');
+	}
 };
+
+async function whoami(socket: Socket) {
+	try {
+		const chatWindow = document.getElementById("t-chatbox") as HTMLDivElement;
+		const loggedIn = await isLoggedIn();
+
+		const res = await client.guestLogin();
+		switch (res.kind) {
+			case 'success': {
+				let user = await updateUser();
+				if (chatWindow) {
+					socket.emit('updateClientName', {
+						oldUser: '',
+						user: user?.name
+					});
+				}
+				if (user === null)
+					return showError('Failed to get user: no user ?');
+				setTitle(`Welcome ${user.guest ? '[GUEST] ' : ''}${user.name}`);
+				break;
+			}
+			case 'failed': {
+				showError(`Failed to login: ${res.msg}`);
+			}
+		}
+	} catch (e) {
+		console.error("Login error:", e);
+		showError('Failed to login: Unknown error');
+	}
+};
+
+
 
 function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn {
 	
@@ -227,19 +295,17 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 			SenderWindowID: socket.id,
 		};
 		socket.emit('message', JSON.stringify(message));
-		// if (systemWindow) {
-					const messageElement = document.createElement("div");
-    				messageElement.textContent = `${user}: is connected au server`;
-    				systemWindow.appendChild(messageElement);
-					systemWindow.scrollTop = systemWindow.scrollHeight;
-				// }
+		const messageElement = document.createElement("div");
+    	messageElement.textContent = `${user}: is connected au server`;
+    	systemWindow.appendChild(messageElement);
+		systemWindow.scrollTop = systemWindow.scrollHeight;
 	});
 
 	// Listen for messages from the server "MsgObjectServer"
 	socket.on("MsgObjectServer", (data: { message: ClientMessage}) => {
-		console.log("Message Obj Recieved:", data);
-		console.log("%cRecieved data.message.text: ", color.blue, data.message.text);
-		console.log("%cRecieved data.message.user: ", color.blue, data.message.user);
+		console.log("%cDEBUG LOGS - Message Obj Recieved:", color.green, data);
+		console.log("%cDEBUG LOGS - Recieved data.message.text: ", color.green, data.message.text);
+		console.log("%cDEBUG LOGS - Recieved data.message.user: ", color.green, data.message.user);
 		// Display the message in the chat window
 		const systemWindow = document.getElementById('system-box') as HTMLDivElement;
 		const chatWindow = document.getElementById("t-chatbox") as HTMLDivElement;
@@ -255,6 +321,14 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 			chatWindow.appendChild(messageElement);
 			chatWindow.scrollTop = chatWindow.scrollHeight;
 		}
+		if (chatWindow && data.message.destination === "privateMsg") {
+			const messageElement = document.createElement("div-private");
+			messageElement.textContent = `🔒${data.message.user}: ${data.message.text}`;
+			chatWindow.appendChild(messageElement);
+			chatWindow.scrollTop = chatWindow.scrollHeight;
+		}
+
+		
 		const MAX_SYSTEM_MESSAGES = 10;
 
 		if (systemWindow && data.message.destination === "system-info") {
@@ -272,12 +346,13 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 	});
 
 
-	socket.on('logout', () => {
-		const bquit = document.getElementById('b-quit') as HTMLDivElement | null;
-		if (bquit instanceof HTMLDivElement) {	
-			bquit.click();
-		}
+	socket.on('logout', () => {	
+		quitChat(socket);
 	});
+
+	socket.on('privMessageCopy', (message) => {
+		addMessage(message);
+	})
 
 	type Providers = {
 		name: string,
@@ -288,7 +363,7 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 
 	let toggle = false
 	window.addEventListener("focus", () => {
-		const bwhoami = document.getElementById('b-whoami') as HTMLButtonElement;
+		//nst bwhoami = document.getElementById('b-whoami') as HTMLButtonElement;
 		if (window.location.pathname === '/app/chat') {
 			console.log("%cWindow is focused on /chat:" + socket.id, color.green);
 			if (socket.id) {
@@ -298,12 +373,35 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 			toggle = true;
 		}
 	});
+
 	window.addEventListener("blur", () => {
 		console.log("%cWindow is not focused on /chat", color.red);
 		if (socket.id)
 			windowStateHidden();
 		toggle = false;
 	});
+
+
+	// setInterval(async () => {
+	// 	//connected(socket);
+	// },10000); // every 10 seco	
+
+	socket.on('listBud', (myBuddies: string) => {
+		const buddies = document.getElementById('div-buddies') as HTMLDivElement;
+		console.log('List buddies connected ', myBuddies);
+		listBuddies(buddies,myBuddies);
+	});
+
+	socket.once('welcome', (data) => {
+		const buddies = document.getElementById('div-buddies') as HTMLDivElement;
+		const chatWindow = document.getElementById('t-chatbox') as HTMLDivElement;
+		chatWindow.innerHTML = '';
+		buddies.textContent = '';
+		buddies.innerHTML = '';
+		connected(socket);
+		addMessage (`${data.msg}  ` + getUser()?.name);
+	});
+
 
 	setTitle('Chat Page');
 	// Listen for the 'connect' event
@@ -336,16 +434,6 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
                 console.log('unknown response: ', value);
             }
 
-
-			socket.once('welcome', (data) => {
-				chatWindow.textContent = '';
-				chatWindow.innerHTML = '';
-				buddies.textContent = '';
-				buddies.innerHTML = '';
-				connected(socket);
-				addMessage (`${data.msg}  ` + getUser()?.name);
-			});
-
 			// Send button
 			sendButton?.addEventListener("click", () => {
 				if (sendtextbox && sendtextbox.value.trim()) {
@@ -358,16 +446,32 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 								broadcastMsg(socket, msgCommand);
 								break;
     						case '@who':
-    						    bwhoami.click();
-    						    break;
+								whoami(socket);
+								break;
     						case '@cls':
     						    chatWindow.innerHTML = '';
     						    break;
 							case '@quit':
-    						    bquit.click();
+								quitChat(socket);
     						    break;	
     						default:
-    						    addMessage('Command not known');
+
+								const user = getUser()?.name;
+								// Ensure we have a user AND socket is connected
+								if (!user || !socket.connected) return;
+								const message = {
+									command: msgCommand[0],
+									destination: '',
+									type: "chat",
+									user,
+									token: document.cookie ?? "",
+									text: msgCommand[1],
+									timestamp: Date.now(),
+									SenderWindowID: socket.id,
+								};
+								//socket.emit('MsgObjectServer', message);
+								socket.emit('privMessage', JSON.stringify(message));
+    						    // addMessage(JSON.stringify(message));
     						    break;
 						}
 						// Clear the input in all cases
@@ -378,34 +482,14 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 
 			// Clear Text button
 			clearText?.addEventListener("click", () => {
-
 				if (chatWindow) {
 					chatWindow.innerHTML = '';
 				}
 			});
 
 			bquit?.addEventListener('click', () => {
-				if (socket) {
-					logout(socket);
-					setTitle('Chat Page');
-					systemWindow.innerHTML = "";
-					chatWindow.textContent = "";
-					connected(socket);
-				} else {
-					getSocket();
-				}
+				quitChat(socket);
 			});
-
-					
-			setInterval(async () => {
-				//connected(socket);
-			},10000); // every 10 second
-
-			socket.on('listBud', (myBuddies: string) => {
-				console.log('List buddies connected ', myBuddies);
-				listBuddies(buddies,myBuddies);
-			});
-
 
 			// Enter key to send message
 			sendtextbox!.addEventListener('keydown', (event) => {
@@ -416,32 +500,7 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 
 			// Whoami button to display user name
 			bwhoami?.addEventListener('click', async () => {
-				try {
-					const loggedIn = await isLoggedIn();
-					
-					const res = await client.guestLogin();
-					switch (res.kind) {
-						case 'success': {
-							let user = await updateUser();
-							if (chatWindow) {
-								socket.emit('updateClientName', {
-									oldUser: '',
-									user: user?.name
-								});
-							}
-							if (user === null)
-								return showError('Failed to get user: no user ?');
-							setTitle(`Welcome ${user.guest ? '[GUEST] ' : ''}${user.name}`);
-							break;
-						}
-						case 'failed': {
-							showError(`Failed to login: ${res.msg}`);
-						}
-					}
-				} catch (e) {
-					console.error("Login error:", e);
-					showError('Failed to login: Unknown error');
-				}
+				whoami(socket);
 			});
 		}
 	}
