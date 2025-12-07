@@ -2,9 +2,15 @@ import { addRoute, setTitle, type RouteHandlerReturn } from "@app/routing";
 import tttPage from "./ttt.html?raw";
 import { showError, showInfo, showSuccess } from "@app/toast";
 
+// Represents the possible states of a cell on the board.
+// `null` means that the cell is empty.
 type CellState = 'O' | 'X' | null
 
+// Encapsulates the game logic.
 class TTC {
+
+    private isGameOver: boolean;
+
     private board: [
         CellState, CellState, CellState,
         CellState, CellState, CellState,
@@ -13,6 +19,7 @@ class TTC {
     
     constructor() {
         this.board = [null,null,null,null,null,null,null,null,null];
+        this.isGameOver = false;
         this.currentPlayer = 'X';
     }
 
@@ -24,12 +31,13 @@ class TTC {
             this.currentPlayer = 'X';
     }
 
+    // Analyzes the current board to determine if the game has ended.
     private checkState(): 'winX' | 'winO' | 'draw' | 'ongoing'
     {
         const checkRow = (row: number): ('X' | 'O' | null) =>  {
             if (this.board[row * 3] === null)
                 return null;
-            if (this.board[row * 3] === this.board[row * 3+1] && this.board[row + 1] === this.board[row * 3 + 2])
+            if (this.board[row * 3] === this.board[row * 3+1] && this.board[row * 3 + 1] === this.board[row * 3 + 2])
                 return this.board[row * 3];
             return null;
         }
@@ -67,14 +75,29 @@ class TTC {
         return 'ongoing';
     }
 
+    // Attempts to place the current player's mark on the specified cell.
+    // @param idx - The index of the board (0-8) to place the mark.
+    // @returns The resulting game state, or `invalidMove` if the move is illegal.
     public makeMove(idx: number): 'winX' | 'winO' | 'draw' | 'ongoing' | 'invalidMove' {
-        if (idx < 0 || idx >= this.board.length)
+        if (this.isGameOver) {
             return 'invalidMove';
-        if (this.board[idx] !== null)
+        }
+        if (idx < 0 || idx >= this.board.length) {
             return 'invalidMove';
+        }
+        if (this.board[idx] !== null) {
+            return 'invalidMove';
+        }
         this.board[idx] = this.currentPlayer;
         this.changePlayer();
-        return this.checkState();
+
+        const result = this.checkState();
+
+        if (result !== 'ongoing') {
+            this.isGameOver = true;
+        }
+
+        return result;
     }
 
     public getBoard(): [
@@ -86,9 +109,11 @@ class TTC {
     }
 }
 
-
+// Route handler for the Tic-Tac-Toe page.
+// Instantiates the game logic and binds UI events.
 async function handleTTT(): Promise<RouteHandlerReturn>
 {
+    // Create a fresh instance for every page load.
     let board = new TTC();
 
     return {
@@ -122,7 +147,8 @@ async function handleTTT(): Promise<RouteHandlerReturn>
                             break;
                         }
                     }
-                    
+
+                    // Sync UI with Game State
                     const board_state = board.getBoard();
                     board_state.forEach( function (cell_state, cell_idx) {
                         cells[cell_idx].innerText = cell_state !== null ? cell_state : " ";
