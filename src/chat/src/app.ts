@@ -199,6 +199,7 @@ async function onReady(fastify: FastifyInstance) {
 					   <div-login-name id="loginName"> Login Name: '${allUsers?.login ?? 'Guest'}' </div> 
 					   </br>
 					   <button id="popup-b-clear" class="btn-style popup-b-clear">Clear Text</button>
+					   <button id="popup-b-invite" class="btn-style popup-b-invite">Pong Us ?</button>
             		   <div id="profile-about">About: No description</div>
         			  </div>`;
 		}
