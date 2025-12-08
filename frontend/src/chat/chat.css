@@ -223,6 +223,13 @@ div-private {
   right-12
 }
 
+.popup-b-invite {
+  @apply
+  absolute 
+  bottom-52 
+  right-12
+}
+
 .hidden{
     display: none;
 }
