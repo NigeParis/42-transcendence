@@ -32,7 +32,24 @@ export type ClientProfil = {
 	text: string,
 	timestamp: number,
 	SenderWindowID:string,
+	SenderName: string,
+    innerHtml?: string,
+
 }; 		
+
+// export type inviteGame = {
+// 	command?: string,
+// 	destination?: string,
+//    	type?: string,
+// 	user?: string, 
+// 	loginName?: string,
+// 	userID?: string,
+// 	innerHtml?: string,
+// 	timestamp?: number,
+// 	SenderWindowID?:string,
+// }; 		
+
+
 
 // get the name of the machine used to connect 
 const machineHostName = window.location.hostname;
@@ -81,27 +98,34 @@ function isLoggedIn() {
 };
 
 function inviteToPlayPong(profil: ClientProfil, senderSocket: Socket) {
-
-
-
+	profil.SenderName = getUser()?.name ?? '';
+	if (profil.SenderName === profil.user) return;
+	addMessage(`You invited to play: ${profil.user}🏓`)
+	senderSocket.emit('inviteGame', JSON.stringify(profil));
 };
 
 
 
-function actionBtnPopUp(profil: ClientProfil, senderSocket: Socket) {
+function actionBtnPopUpClear(profil: ClientProfil) {
 		setTimeout(() => {
 			const clearTextBtn = document.querySelector("#popup-b-clear");        		
 			clearTextBtn?.addEventListener("click", () => {
 				clearText();
 			});
-			const InvitePongBtn = document.querySelector("#popup-b-invite");        		
-			InvitePongBtn?.addEventListener("click", () => {
-				inviteToPlayPong(profil, senderSocket);
-			});
-			
-
     	}, 0)
 };
+
+
+function actionBtnPopUpInvite(invite: ClientProfil, senderSocket: Socket) {
+		setTimeout(() => {
+			const InvitePongBtn = document.querySelector("#popup-b-invite");
+			InvitePongBtn?.addEventListener("click", () => {
+				inviteToPlayPong(invite, senderSocket);
+			});
+    	}, 0)
+};
+
+
 
 // getProfil get the profil of user
 function getProfil(socket: Socket, user: string) {
@@ -357,7 +381,7 @@ async function openProfilePopup(profil: ClientProfil) {
 						<div-login-name id="loginName"> Login ID: '${profil.userID ?? ''}' </div> 
 						</br>
 						<button id="popup-b-clear" class="btn-style popup-b-clear">Clear Text</button>
-						<button id="popup-b-invite" class="btn-style popup-b-invite">Pong Us ?</button>
+						<button id="popup-b-invite" class="btn-style popup-b-invite">U Game ?</button>
             			<div id="profile-about">About: '${profil.text}' </div>
         			</div>
 	`;
@@ -403,9 +427,6 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 
 	// Listen for messages from the server "MsgObjectServer"
 	socket.on("MsgObjectServer", (data: { message: ClientMessage}) => {
-		console.log("%cDEBUG LOGS - Message Obj Recieved:", color.green, data);
-		console.log("%cDEBUG LOGS - Recieved data.message.text: ", color.green, data.message.text);
-		console.log("%cDEBUG LOGS - Recieved data.message.user: ", color.green, data.message.user);
 		// Display the message in the chat window
 		const systemWindow = document.getElementById('system-box') as HTMLDivElement;
 		const chatWindow = document.getElementById("t-chatbox") as HTMLDivElement;
@@ -447,10 +468,17 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 
 	socket.on('profilMessage', (profil: ClientProfil) => {	
 		openProfilePopup(profil);		
-		actionBtnPopUp(profil, socket);
+		actionBtnPopUpClear(profil);
+		actionBtnPopUpInvite(profil, socket);
 	});
 
-	
+	socket.on('inviteGame', (invite: ClientProfil) => {	
+		const chatWindow = document.getElementById("t-chatbox") as HTMLDivElement;
+		const messageElement = document.createElement("div");
+    	messageElement.innerHTML =`🏓${invite.SenderName}:  ${invite.innerHtml}`;
+    	chatWindow.appendChild(messageElement);
+	});
+
 	socket.on('logout', () => {	
 		quitChat(socket);
 	});
