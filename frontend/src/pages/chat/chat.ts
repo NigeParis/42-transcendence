@@ -87,10 +87,12 @@ function addMessage(text: string) {
 	return ;
 };
 
-function clearText() {
+function clear(senderSocket: Socket) {
 	const chatWindow = document.getElementById("t-chatbox") as HTMLDivElement;
 	if (!chatWindow) return;
 	chatWindow.innerHTML = "";
+	// senderSocket.emit('nextGame');
+
 }
 
 function isLoggedIn() {
@@ -106,11 +108,11 @@ function inviteToPlayPong(profil: ClientProfil, senderSocket: Socket) {
 
 
 
-function actionBtnPopUpClear(profil: ClientProfil) {
+function actionBtnPopUpClear(profil: ClientProfil, senderSocket: Socket) {
 		setTimeout(() => {
 			const clearTextBtn = document.querySelector("#popup-b-clear");        		
 			clearTextBtn?.addEventListener("click", () => {
-				clearText();
+				clear(senderSocket);
 			});
     	}, 0)
 };
@@ -240,8 +242,9 @@ async function listBuddies(socket: Socket, buddies: HTMLDivElement, listBuddies:
 	});
 
 	buddiesElement.addEventListener("dblclick", () => {
-        console.log("Open profile:", listBuddies);
+		console.log("Open profile:", listBuddies);
 		getProfil(socket, listBuddies);
+        sendtextbox.value = "";
     });
 
 	buddies.appendChild(buddiesElement);
@@ -387,11 +390,31 @@ async function openProfilePopup(profil: ClientProfil) {
             			<div id="profile-about">About: '${profil.text}' </div>
         			</div>
 	`;
-			const profilList = document.getElementById("profile-modal") ?? null;
+	const profilList = document.getElementById("profile-modal") ?? null;
 	if (profilList)
 		profilList.classList.remove("hidden");
 	 // The popup now exists → attach the event
 }
+
+async function openMessagePopup(message: string) {
+
+	
+	const modalmessage = document.getElementById("modal-message") ?? null;
+	if(!message) return
+	const obj:any =  JSON.parse(message);
+	if (modalmessage)
+		modalmessage.innerHTML = `
+					<div class="profile-info">
+						</br>
+            			<div id="profile-about">Next Game Message: ${obj.link}</div>
+        			</div>`;
+	const gameMessage = document.getElementById("game-modal") ?? null;
+	if (gameMessage)
+		gameMessage.classList.remove("hidden");
+	 // The popup now exists → attach the event
+}
+
+
 
 
 function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn {
@@ -470,7 +493,7 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 
 	socket.on('profilMessage', (profil: ClientProfil) => {	
 		openProfilePopup(profil);		
-		actionBtnPopUpClear(profil);
+		actionBtnPopUpClear(profil, socket);
 		actionBtnPopUpInvite(profil, socket);
 	});
 
@@ -489,37 +512,39 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 		addMessage(message);
 	})
 
-	type Providers = {
-		name: string,
-		display_name: string,
-		icon_url?: string,
-		color?: { default: string, hover: string },
-	};
+	//receives broadcast of the next GAME
+	socket.on('nextGame', (message) => {
+		openMessagePopup(message);
+		// addMessage(message);
+	})
 
 	let toggle = false
-	window.addEventListener("focus", () => {
+	window.addEventListener("focus", async () => {
 		//nst bwhoami = document.getElementById('b-whoami') as HTMLButtonElement;
-		if (window.location.pathname === '/app/chat') {
+
+		setTimeout(() => {
 			connected(socket);
-			console.log("%cWindow is focused on /chat:" + socket.id, color.green);
+		}, 0);
+		if (window.location.pathname === '/app/chat') {
+			console.log('%cWindow is focused on /chat:' + socket.id, color.green);
 			if (socket.id) {
-				windowStateVisable();
+				await windowStateVisable();
 			}
 			toggle = true;
 		}
 	});
 
 	window.addEventListener("blur", () => {
-		console.log("%cWindow is not focused on /chat", color.red);
+		console.log('%cWindow is not focused on /chat', color.red);
 		if (socket.id)
 			windowStateHidden();
 		toggle = false;
 	});
 
-
 	// setInterval(async () => {
 	// 	//connected(socket);
-	// },10000); // every 10 seco	
+	// },10000); // every 10 sec
+
 	socket.on('listBud', async (myBuddies: string)  => {
 		const buddies = document.getElementById('div-buddies') as HTMLDivElement;
 		console.log('List buddies connected ', myBuddies);
@@ -552,6 +577,7 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 			const buddies = document.getElementById('div-buddies') as HTMLDivElement;
 			const bquit = document.getElementById('b-quit') as HTMLDivElement;
 			const systemWindow = document.getElementById('system-box') as HTMLDivElement;
+			const bnextGame = document.getElementById('b-nextGame') as HTMLDivElement;
 
 			chatWindow.textContent = '';
 			chatWindow.innerHTML = '';
@@ -577,6 +603,18 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
   				const profilList = document.getElementById("profile-modal") ?? null;
 				if (profilList) profilList.classList.add("hidden");
 			});
+
+
+
+
+			const buttonMessage = document.getElementById("close-modal-message") ?? null;
+
+			if (buttonMessage)
+				buttonMessage.addEventListener("click", () => {
+  				const gameMessage = document.getElementById("game-modal") ?? null;
+				if (gameMessage) gameMessage.classList.add("hidden");
+			});
+
 
 			// Send button
 			sendButton?.addEventListener("click", () => {
@@ -631,6 +669,14 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 				if (chatWindow) {
 					chatWindow.innerHTML = '';
 				}
+				clear(socket); //DEV testing broadcastGames
+			});
+
+			// Dev Game message button
+			bnextGame?.addEventListener("click", () => {
+				if (chatWindow) {
+					socket.emit('nextGame');
+				}
 			});
 
 			bquit?.addEventListener('click', () => {
@@ -653,4 +699,3 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 	}
 };
 addRoute('/chat', handleChat, { bypass_auth: true });
-
