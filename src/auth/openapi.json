@@ -8,6 +8,140 @@
         "schemas": {}
     },
     "paths": {
+        "/api/auth/changePassword": {
+            "post": {
+                "operationId": "changePassword",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "new_password"
+                                ],
+                                "properties": {
+                                    "new_password": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Default Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "kind",
+                                        "msg"
+                                    ],
+                                    "properties": {
+                                        "kind": {
+                                            "enum": [
+                                                "success"
+                                            ]
+                                        },
+                                        "msg": {
+                                            "enum": [
+                                                "changePassword.success"
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Default Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "kind",
+                                        "msg"
+                                    ],
+                                    "properties": {
+                                        "kind": {
+                                            "enum": [
+                                                "failed"
+                                            ]
+                                        },
+                                        "msg": {
+                                            "enum": [
+                                                "changePassword.failed.toolong",
+                                                "changePassword.failed.tooshort",
+                                                "changePassword.failed.invalid"
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Default Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "kind",
+                                        "msg"
+                                    ],
+                                    "properties": {
+                                        "kind": {
+                                            "enum": [
+                                                "notLoggedIn"
+                                            ]
+                                        },
+                                        "msg": {
+                                            "enum": [
+                                                "auth.noCookie",
+                                                "auth.invalidKind",
+                                                "auth.noUser",
+                                                "auth.invalid"
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Default Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "kind",
+                                        "msg"
+                                    ],
+                                    "properties": {
+                                        "kind": {
+                                            "enum": [
+                                                "failed"
+                                            ]
+                                        },
+                                        "msg": {
+                                            "enum": [
+                                                "changePassword.failed.generic"
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/auth/disableOtp": {
             "put": {
                 "operationId": "disableOtp",
@@ -31,6 +165,32 @@
                                         "msg": {
                                             "enum": [
                                                 "disableOtp.success"
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Default Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "kind",
+                                        "msg"
+                                    ],
+                                    "properties": {
+                                        "kind": {
+                                            "enum": [
+                                                "failure"
+                                            ]
+                                        },
+                                        "msg": {
+                                            "enum": [
+                                                "disableOtp.failure.guest"
                                             ]
                                         }
                                     }
@@ -133,6 +293,32 @@
                                                     "description": "The otp url to feed into a 2fa app"
                                                 }
                                             }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Default Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "kind",
+                                        "msg"
+                                    ],
+                                    "properties": {
+                                        "kind": {
+                                            "enum": [
+                                                "failure"
+                                            ]
+                                        },
+                                        "msg": {
+                                            "enum": [
+                                                "enableOtp.failure.guest"
+                                            ]
                                         }
                                     }
                                 }
@@ -278,6 +464,20 @@
         "/api/auth/guest": {
             "post": {
                 "operationId": "guestLogin",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
                         "description": "Default Response",
@@ -312,6 +512,32 @@
                                                     "description": "JWT that represent a logged in user"
                                                 }
                                             }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Default Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "kind",
+                                        "msg"
+                                    ],
+                                    "properties": {
+                                        "kind": {
+                                            "enum": [
+                                                "failed"
+                                            ]
+                                        },
+                                        "msg": {
+                                            "enum": [
+                                                "guestLogin.failed.invalid"
+                                            ]
                                         }
                                     }
                                 }
@@ -846,12 +1072,12 @@
                                                 "payload": {
                                                     "type": "object",
                                                     "required": [
-                                                        "url"
+                                                        "secret"
                                                     ],
                                                     "properties": {
-                                                        "url": {
+                                                        "secret": {
                                                             "type": "string",
-                                                            "description": "The otp url to feed into a 2fa app"
+                                                            "description": "The otp secret"
                                                         }
                                                     }
                                                 }
