@@ -7,6 +7,7 @@ import * as swagger from '@shared/swagger';
 import * as utils from '@shared/utils';
 import { Server, Socket } from 'socket.io';
 import type { User } from '@shared/database/mixin/user';
+import { sendGameLinkToChatService } from '../../@shared/src/utils/index';
 
 // colors for console.log
 export const color = {
@@ -46,7 +47,7 @@ export type ClientProfil = {
 	command: string,
 	destination: string,
    	type: string,
-	user: string, 
+	user: string,
 	loginName: string,
 	userID: string,
 	text: string,
@@ -55,21 +56,28 @@ export type ClientProfil = {
 	SenderName: string,
     innerHtml?: string,
 
-}; 			
+};
 
+/**
+/* TODO find the description info for profil / or profil game link and return
+**/
+function createNextGame() {
+	return '<a href=\'https://localhost:8888/app/\' style=\'color: blue; text-decoration: underline; cursor: pointer;\'>The next Game is Starting click here to watch</a>';
+};
 
-// export type inviteGame = {
-// 	command?: string,
-// 	destination?: string,
-//    	type?: string,
-// 	user?: string, 
-// 	loginName?: string,
-// 	userID?: string,
-// 	innerHtml?: string,
-// 	timestamp?: number,
-// 	SenderWindowID?:string,
-// 	SenderName: string
-// }; 		
+function setAboutPlayer(about: string): string {
+	if (!about) {
+		about = 'Player is good Shape - This is a default description';
+	}
+	return about;
+};
+
+function setGameLink(link: string): string {
+	if (!link) {
+		link = '<a href=\'https://google.com\' style=\'color: blue; text-decoration: underline; cursor: pointer;\'>Click me</a>';
+	}
+	return link;
+};
 
 
 const clientChat = new Map<string, ClientInfo>();
@@ -118,6 +126,7 @@ declare module 'fastify' {
 			profilMessage: (data: ClientProfil) => void;
 			inviteGame: (data: ClientProfil) => void;
 			privMessageCopy: (msg: string) => void;
+			nextGame: (msg: string) => void;
 			message: (msg: string) => void;
 			listBud: (msg: string) => void;
 			testend: (sock_id_client: string) => void;
@@ -189,6 +198,28 @@ async function onReady(fastify: FastifyInstance) {
 		});
 	}
 
+
+	async function broadcastNextGame(gameLink?: Promise<string>) {
+
+		const link = gameLink ? await gameLink : undefined;
+		const sockets = await fastify.io.fetchSockets();
+		// fastify.io.fetchSockets().then((sockets) => {
+		for (const socket of sockets) {
+			// Skip sender's own socket
+			const clientInfo = clientChat.get(socket.id);
+			if (!clientInfo?.user) {
+				console.log(color.yellow, `Skipping socket ${socket.id} (no user found)`);
+				continue;
+			}
+			// Emit structured JSON object
+			if (link) {
+				socket.emit('nextGame', link);
+			}
+			// Debug logs
+			// console.log(color.green, `'DEBUG LOG: Broadcast to:', ${data.command} message: ${data.text}`);
+		}
+	};
+
 	// function formatTimestamp(ms: number) {
 	// const d = new Date(ms);
 	// return d.toLocaleString('fr-FR', { timeZone: 'Europe/Paris' });
@@ -198,21 +229,9 @@ async function onReady(fastify: FastifyInstance) {
     	return users.find(user => user.name === name) || null;
 	}
 
-	///TODO find the description info for profil / or profil game link and return 
-	function getAboutPlayer( ): string{
-		const description = 'Player is good Shape this needs to be replaced by a bd.function()';
-		return description;
-	}
-
-	function getGameLink(): string{
-		const link = `<a href="https://google.com" style="color: blue; text-decoration: underline; cursor: pointer;">Click me</a>`;
-		return link;
-	}
-
-	
 	// this function returns html the profil pop up in CHAT of a user 'nickname unique' TODO ....
 	async function getProfil(user: string, socket: Socket): Promise <ClientProfil> {
-		
+
 		let clientProfil!: ClientProfil;
 		const users: User[] = fastify.db.getAllUsers() ?? [];
 		const allUsers: User | null = getUserByName(users, user);
@@ -220,20 +239,20 @@ async function onReady(fastify: FastifyInstance) {
 		if (user === allUsers?.name) {
 			console.log(color.yellow, `'login Name: '${allUsers.login}' user: '${user}'`);
 
-			clientProfil = 
+			clientProfil =
 			{
 				command: 'getProfil',
 				destination: 'profilMsg',
 				type: 'chat' as const,
-				user: `${allUsers.name}`, 
+				user: `${allUsers.name}`,
 				loginName: `${allUsers?.login ?? 'Guest'}`,
 				userID: `${allUsers?.id ?? ''}`,
-				text: getAboutPlayer(),
+				text: setAboutPlayer(''),
 				timestamp: Date.now(),
 				SenderWindowID: socket.id,
 				SenderName: '',
     			innerHtml: '',
-			}; 		
+			};
 		}
 		return clientProfil;
 	};
@@ -250,10 +269,10 @@ async function onReady(fastify: FastifyInstance) {
 
 	function sendInvite(innerHtml: string, data: ClientProfil) {
 		fastify.io.fetchSockets().then((sockets) => {
-			
+
 			let targetSocket;
 			for (const socket of sockets) {
-				let clientInfo: string = clientChat.get(socket.id)?.user || '';
+				const clientInfo: string = clientChat.get(socket.id)?.user || '';
 				if (clientInfo === data.user) {
 					console.log(color.yellow, 'FOUND:', data.user);
 					targetSocket = socket || '';
@@ -261,7 +280,7 @@ async function onReady(fastify: FastifyInstance) {
 				}
 			}
 			data.innerHtml = innerHtml ?? '';
-				if (targetSocket) {
+			if (targetSocket) {
 				targetSocket.emit('inviteGame', data);
 			}
 		});
@@ -331,6 +350,13 @@ async function onReady(fastify: FastifyInstance) {
 
 		socket.on('testend', (sock_id_cl: string) => {
 			console.log('testend received from client socket id:', sock_id_cl);
+		});
+
+
+		socket.on('nextGame', () => {
+			const link = createNextGame();
+			const game: Promise<string> = sendGameLinkToChatService(link);
+			broadcastNextGame(game);
 		});
 
 		socket.on('list', (object) => {
@@ -496,8 +522,8 @@ async function onReady(fastify: FastifyInstance) {
 			const clientName: string = clientChat.get(socket.id)?.user || '';
 			const profilInvite: ClientProfil = JSON.parse(data) || '';
 			// const users: User[] = fastify.db.getAllUsers() ?? [];
-		
-			const inviteHtml: string =  `invites you to a game ` + getGameLink();
+
+			const inviteHtml: string = 'invites you to a game ' + setGameLink('');
 			if (clientName !== null) {
 				// const testuser: User | null = getUserByName(users, profilInvite.user ?? '');
 				// console.log(color.yellow, 'user:', testuser?.name ?? 'Guest');
