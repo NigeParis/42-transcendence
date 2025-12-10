@@ -223,6 +223,40 @@ div-private {
   right-12
 }
 
+.popup-b-invite {
+  @apply
+  absolute 
+  bottom-52 
+  right-12
+}
+
+
+.popUpMessage {
+  @apply
+  bg-white 
+  p-6 rounded-xl 
+  shadow-xl 
+  w-[800px]
+  h-[100px]
+  p-[10px]
+  border-1 
+  border-black
+
+}
+
+.gamePopup {
+  @apply 
+  fixed 
+  inset-0 
+  bg-black/50 
+  flex
+  justify-center 
+  items-center;
+}
+
+
+
+
 .hidden{
     display: none;
 }
