@@ -26,7 +26,7 @@ const externals = collectDeps(
 export default defineConfig({
 	root: __dirname,
 	define: {
-		__SERVICE_NAME: '"chat"',
+		__SERVICE_NAME: '"tic-tac-toe"',
 	},
 	// service root
 	plugins: [tsconfigPaths(), nodeExternals()],
