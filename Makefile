@@ -6,7 +6,7 @@
 #    By: rparodi <rparodi@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/12 11:05:05 by rparodi           #+#    #+#              #
-#    Updated: 2025/11/24 17:02:33 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/12/12 14:55:40 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -70,8 +70,8 @@ header:
 	@$(ECHO) -e '$(GOLD)              ******    ******* ****** $(END)'
 	@$(ECHO) -e '$(GOLD)              ******                   $(END)'
 	@$(ECHO) -e '$(GOLD)              ******                   $(END)'
-	@$(ECHO) -e '$(GREY)            Made by maiboyerlpb x bebou$(END)'
-	@$(ECHO) -e '$(GREY)                    minou x dumbaless  $(END)'
+	@$(ECHO) -e '$(GREY)                                       $(END)'
+	@$(ECHO) -e '$(GREY)                                       $(END)'
 	@$(ECHO) -e -n $(MSG);
 
 PROJECT__NAME = $(CYAN)$(BOLD)$(UNDERLINE)FT_TRANSCENDENCE$(END)$(GOLD)

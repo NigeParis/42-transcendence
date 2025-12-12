@@ -6,23 +6,33 @@
 #    By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/11 18:10:26 by maiboyer          #+#    #+#              #
-#    Updated: 2025/11/19 13:52:55 by nrobinso         ###   ########.fr        #
+#    Updated: 2025/12/12 14:56:10 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 .PHONY: logs
 
+# TODO: REMOVE THIS BEFORE LAUNCH
+# this allows the us to only start the non-monitoring sercices
+DOCKER_SERVICE=        \
+			  auth     \
+			  chat     \
+			  frontend \
+			  nginx    \
+			  user     \
+
+
 all: build
-	docker compose up -d
+	docker compose up -d $(DOCKER_SERVICE)
 
 logs:
-	docker compose logs -f chat auth icons nginx
+	docker compose logs -f
 
 down:
 	docker compose down
 
 build:
-	docker compose build
+	docker compose build $(DOCKER_SERVICE)
 
 re:
 	$(MAKE) -f ./Docker.mk clean
@@ -40,24 +50,3 @@ prune: clean
 	-docker volume  prune
 	-docker network prune
 	-docker system  prune -a
-
-ES_URL     ?= http://local.maix.me:9200
-KIBANA_URL ?= http://local.maix.me:5601
-
-logs-setup:
-	@until curl -s "$(ES_URL)" > /dev/null 2>&1; do sleep 1; done;
-
-	@curl -s -X PUT "$(ES_URL)/_ilm/policy/docker-logs-policy" \
-	  -H "Content-Type: application/json" \
-	  -d '{"policy":{"phases":{"hot":{"actions":{}},"delete":{"min_age":"7d","actions":{"delete":{}}}}}}' > /dev/null
-
-	@curl -s -X PUT "$(ES_URL)/_template/docker-logs-template" \
-	  -H "Content-Type: application/json" \
-	  -d '{"index_patterns":["docker-*"],"settings":{"index.lifecycle.name":"docker-logs-policy"}}' > /dev/null
-
-	@until curl -s "$(KIBANA_URL)/api/status" > /dev/null 2>&1; do sleep 1; done;
-
-	@curl -s -X POST "$(KIBANA_URL)/api/saved_objects/index-pattern/docker-logs" \
-	  -H "kbn-xsrf: true" \
-	  -H "Content-Type: application/json" \
-	  -d '{"attributes":{"title":"docker-*","timeFieldName":"@timestamp"}}' > /dev/null

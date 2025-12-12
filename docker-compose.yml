@@ -38,7 +38,6 @@ services:
     volumes:
       # if you need to share files with nginx, you do it here.
       - static-volume:/volumes/static
-      - images-volume:/volumes/icons
     environment:
       # this can stay the same for developpement. This is an alias to `localhost`
       - NGINX_DOMAIN=local.maix.me
@@ -281,7 +280,6 @@ services:
     restart: unless-stopped
 
 volumes:
-  images-volume:
   sqlite-volume:
   static-volume:
   grafana-data:
