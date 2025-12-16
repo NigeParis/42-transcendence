@@ -11,7 +11,6 @@ addRoute('/', async (_: string): Promise<string> => {
 	return page;
 }, { bypass_auth: true })
 
-
 addRoute('/with_title/:title', (_: string, args: RouteHandlerParams) => {
 	setTitle(args.title)
 	console.log(`title should be '${args.title}'`);

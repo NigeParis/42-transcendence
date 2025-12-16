@@ -96,7 +96,6 @@ async function handleOtp(
 			}
 		}
 	}
-
 	inputs[0].focus();
 }
 
