@@ -7,7 +7,7 @@ const start = async () => {
 	const envToLogger = {
 		development: {
 			transport: {
-				target: 'pino',
+				target: 'pino-pretty',
 				options: {
 					translateTime: 'HH:MM:ss Z',
 					ignore: 'pid,hostname',
