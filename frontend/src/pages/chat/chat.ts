@@ -4,58 +4,30 @@ import authHtml from './chat.html?raw';
 import client from '@app/api'
 import { getUser, updateUser } from "@app/auth";
 import io, { Socket } from 'socket.io-client';
+import { listBuddies } from './listBuddies';
+import { getProfil } from './getProfil';
+import { addMessage } from './addMessage';
+import { broadcastMsg } from './broadcastMsg';
+import { isLoggedIn } from './isLoggedIn';
+import type { ClientMessage, ClientProfil } from './types_front';
+import { openProfilePopup } from './openProfilePopup';
+import { actionBtnPopUpClear } from './actionBtnPopUpClear';
+import { actionBtnPopUpBlock } from './actionBtnPopUpBlock';
+import { windowStateHidden } from './windowStateHidden';
 
-const color = {
+export const color = {
 	red: 'color: red;',
 	green: 'color: green;',
 	yellow: 'color: orange;',
 	blue: 'color: blue;',
-	reset: '', 
+	reset: '',
 };
 
-export type ClientMessage = {
-	command: string
-	destination: string;
-	user: string;
-	text: string;
-	SenderWindowID: string;
-};
-
-
-export type ClientProfil = {
-	command: string,
-	destination: string,
-   	type: string,
-	user: string, 
-	loginName: string,
-	userID: string,
-	text: string,
-	timestamp: number,
-	SenderWindowID:string,
-	SenderName: string,
-    innerHtml?: string,
-
-}; 		
-
-// export type inviteGame = {
-// 	command?: string,
-// 	destination?: string,
-//    	type?: string,
-// 	user?: string, 
-// 	loginName?: string,
-// 	userID?: string,
-// 	innerHtml?: string,
-// 	timestamp?: number,
-// 	SenderWindowID?:string,
-// }; 		
-
-
-
-// get the name of the machine used to connect 
+// get the name of the machine used to connect
 const machineHostName = window.location.hostname;
 console.log('connect to login at %chttps://' + machineHostName + ':8888/app/login',color.yellow);
 
-let __socket: Socket | undefined = undefined;
+export let __socket: Socket | undefined = undefined;
 document.addEventListener('ft:pageChange', () => {
 	if (__socket !== undefined)
 		__socket.close();
@@ -63,7 +35,7 @@ document.addEventListener('ft:pageChange', () => {
 	console.log("Page changed");
 });
 
-function getSocket(): Socket {
+export function getSocket(): Socket {
 	let addressHost = `wss://${machineHostName}:8888`;
 	// let addressHost = `wss://localhost:8888`;
 	if (__socket === undefined)
@@ -76,47 +48,12 @@ function getSocket(): Socket {
 	return __socket;
 };
 
-function addMessage(text: string) {
-	const chatWindow = document.getElementById("t-chatbox") as HTMLDivElement;
-	if (!chatWindow) return;
-	const messageElement = document.createElement("div-test");
-	messageElement.textContent = text;
-	chatWindow.appendChild(messageElement);
-	chatWindow.scrollTop = chatWindow.scrollHeight;
-	console.log(`Added new message: ${text}`)
-	return ;
-};
-
-function clear(senderSocket: Socket) {
-	const chatWindow = document.getElementById("t-chatbox") as HTMLDivElement;
-	if (!chatWindow) return;
-	chatWindow.innerHTML = "";
-	// senderSocket.emit('nextGame');
-
-}
-
-function isLoggedIn() {
-	return getUser() || null;
-};
-
 function inviteToPlayPong(profil: ClientProfil, senderSocket: Socket) {
 	profil.SenderName = getUser()?.name ?? '';
 	if (profil.SenderName === profil.user) return;
 	addMessage(`You invited to play: ${profil.user}🏓`)
 	senderSocket.emit('inviteGame', JSON.stringify(profil));
 };
-
-
-
-function actionBtnPopUpClear(profil: ClientProfil, senderSocket: Socket) {
-		setTimeout(() => {
-			const clearTextBtn = document.querySelector("#popup-b-clear");        		
-			clearTextBtn?.addEventListener("click", () => {
-				clear(senderSocket);
-			});
-    	}, 0)
-};
-
 
 function actionBtnPopUpInvite(invite: ClientProfil, senderSocket: Socket) {
 		setTimeout(() => {
@@ -127,48 +64,29 @@ function actionBtnPopUpInvite(invite: ClientProfil, senderSocket: Socket) {
     	}, 0)
 };
 
+// async function windowStateHidden() {
+// 	const socketId = __socket || undefined;
+// 	// let oldName = localStorage.getItem("oldName") ??  undefined;
+// 	let oldName: string;
+// 	if (socketId === undefined) return;
+// 	let userName = await updateUser();
+// 	oldName =  userName?.name ?? "";
+// 	if (oldName === "") return;
+// 	localStorage.setItem('oldName', oldName);
+// 	socketId.emit('client_left', {
+// 		user: userName?.name,
+// 		why: 'tab window hidden - socket not dead',
+// 	});
+// 	return;
+// };
 
-
-// getProfil get the profil of user
-function getProfil(socket: Socket, user: string) {
-		if (!socket.connected) return;
-		const profil = {
-			command: '@profil',
-			destination: 'profilMessage',
-			type: "chat",
-			user: user,
-			token: document.cookie ?? "",
-			text: user,
-			timestamp: Date.now(),
-			SenderWindowID: socket.id,
-		};
-    	// addMessage(JSON.stringify(profil));
-		socket.emit('profilMessage', JSON.stringify(profil));
-}
-
-async function windowStateHidden() {		
-	const socketId = __socket || undefined;
-	// let oldName = localStorage.getItem("oldName") ??  undefined;
-	let oldName: string;
-	if (socketId === undefined) return;
-	let userName = await updateUser();
-	oldName =  userName?.name ?? "";
-	if (oldName === "") return;
-	localStorage.setItem('oldName', oldName);
-	socketId.emit('client_left', {
-		user: userName?.name,
-		why: 'tab window hidden - socket not dead',
-	});	
-	return;
-};
-	
 async function windowStateVisable() {
 
-	const buddies = document.getElementById('div-buddies') as HTMLDivElement;		
+	const buddies = document.getElementById('div-buddies') as HTMLDivElement;
 	const socketId = __socket || undefined;
 	let oldName = localStorage.getItem("oldName") || undefined;
 	console.log("%c WINDOW VISIBLE - oldName :'" + oldName + "'", color.green);
-	
+
 	if (socketId === undefined || oldName === undefined) {console.log("%SOCKET ID", color.red); return;}
 	let user = await updateUser();
 	if(user === null) return;
@@ -203,7 +121,7 @@ function parseCmdMsg(msgText: string): string[] | undefined {
 
 	const ArgCommands = ['@profil', '@block'];
 	const userName = msgText.indexOf(" ");
-	const cmd2 = msgText.slice(0, userName).trim() ?? "";        
+	const cmd2 = msgText.slice(0, userName).trim() ?? "";
 	const user = msgText.slice(userName + 1).trim();
 	if (ArgCommands.includes(cmd2)) {
     	    command[0] = cmd2;
@@ -216,41 +134,41 @@ function parseCmdMsg(msgText: string): string[] | undefined {
         command[1] = '';
         return command;
     }
-    const cmd = msgText.slice(0, colonIndex).trim();        
-    const rest = msgText.slice(colonIndex + 1).trim();      
+    const cmd = msgText.slice(0, colonIndex).trim();
+    const rest = msgText.slice(colonIndex + 1).trim();
     command[0] = cmd;
     command[1] = rest;
     return command;
 }
 
-async function listBuddies(socket: Socket, buddies: HTMLDivElement, listBuddies: string) {
+// async function listBuddies(socket: Socket, buddies: HTMLDivElement, listBuddies: string) {
 
-	if (!buddies) return;
-	const sendtextbox = document.getElementById('t-chat-window') as HTMLButtonElement;
-	const buddiesElement = document.createElement("div-buddies-list");
-	buddiesElement.textContent = listBuddies + '\n';
-	const user = getUser()?.name ?? ""; 
+// 	if (!buddies) return;
+// 	const sendtextbox = document.getElementById('t-chat-window') as HTMLButtonElement;
+// 	const buddiesElement = document.createElement("div-buddies-list");
+// 	buddiesElement.textContent = listBuddies + '\n';
+// 	const user = getUser()?.name ?? "";
+// 	buddies.appendChild(buddiesElement);
+// 	buddies.scrollTop = buddies.scrollHeight;
+// 	console.log(`Added buddies: ${listBuddies}`);
 
-	buddiesElement.style.cursor = "pointer";
-	buddiesElement.addEventListener("click", () => {
-		navigator.clipboard.writeText(listBuddies);
-		if (listBuddies !== user && user !== "") {
-			sendtextbox.value = `@${listBuddies}: `;
-			console.log("Copied to clipboard:", listBuddies);
-			sendtextbox.focus();
-		} 
-	});
+// 	buddiesElement.style.cursor = "pointer";
+// 	buddiesElement.addEventListener("click", () => {
+// 		navigator.clipboard.writeText(listBuddies);
+// 		if (listBuddies !== user && user !== "") {
+// 			sendtextbox.value = `@${listBuddies}: `;
+// 			console.log("Copied to clipboard:", listBuddies);
+// 			sendtextbox.focus();
+// 		}
+// 	});
 
-	buddiesElement.addEventListener("dblclick", () => {
-		console.log("Open profile:", listBuddies);
-		getProfil(socket, listBuddies);
-        sendtextbox.value = "";
-    });
+// 	buddiesElement.addEventListener("dblclick", () => {
+// 		console.log("Open profile:", listBuddies);
+// 		getProfil(socket, listBuddies);
+//         sendtextbox.value = "";
+//     });
 
-	buddies.appendChild(buddiesElement);
-	buddies.scrollTop = buddies.scrollHeight;
-	console.log(`Added buddies: ${listBuddies}`);
-}
+// }
 
 
 function waitSocketConnected(socket: Socket): Promise<void> {
@@ -278,7 +196,7 @@ function quitChat (socket: Socket) {
 		console.error("Quit Chat error:", e);
 		showError('Failed to Quit Chat: Unknown error');
 	}
- 
+
 };
 
 // const bconnected = document.getElementById('b-help') as HTMLButtonElement;
@@ -295,32 +213,13 @@ function logout(socket: Socket) {
 //   window.location.href = "/login";
 };
 
-function broadcastMsg (socket: Socket, msgCommand: string[]): void {
-	let msgText = msgCommand[1] ?? "";					
-	console.log('%cmsgText:', color.red, msgText);
-	addMessage(msgText);
-	const user = getUser();
-	if (user && socket?.connected) {
-		const message = {
-			command: msgCommand,
-			destination: '',
-			type: "chat",
-			user: user.name,
-			token: document.cookie,
-			text: msgText,
-			timestamp: Date.now(),
-			SenderWindowID: socket.id,
-			};
-		socket.emit('message', JSON.stringify(message));
-	}
-};
-
 
 async function connected(socket: Socket): Promise<void> {
-	
+
 	try {
 			const buddies = document.getElementById('div-buddies') as HTMLDivElement;
 			const loggedIn = isLoggedIn();
+			if (!loggedIn) throw('Not Logged in');
 			console.log('%cloggedIn:',color.blue, loggedIn?.name);
 			let oldUser = localStorage.getItem("oldName") ?? "";
 			console.log('%coldUser:',color.yellow, oldUser);
@@ -348,9 +247,9 @@ async function whoami(socket: Socket) {
 		const chatWindow = document.getElementById("t-chatbox") as HTMLDivElement;
 		const loggedIn = isLoggedIn();
 
-		const res = await client.guestLogin();
-		switch (res.kind) {
-			case 'success': {
+		const res = (getUser());
+		console.log('loginGuest():', res?.name);
+		if (res) {
 				let user = await updateUser();
 				if (chatWindow) {
 					socket.emit('updateClientName', {
@@ -361,53 +260,61 @@ async function whoami(socket: Socket) {
 				if (user === null)
 					return showError('Failed to get user: no user ?');
 				setTitle(`Welcome ${user.guest ? '[GUEST] ' : ''}${user.name}`);
-				break;
+			} else {
+				showError(`Failed to login: ${res}`);
 			}
-			case 'failed': {
-				showError(`Failed to login: ${res.msg}`);
-			}
-		}
+
 	} catch (e) {
 		console.error("Login error:", e);
 		showError('Failed to login: Unknown error');
 	}
 };
 
-async function openProfilePopup(profil: ClientProfil) {
+// async function openProfilePopup(profil: ClientProfil) {
 
-	
-	const modalname = document.getElementById("modal-name") ?? null;
-	if (modalname)
-		modalname.innerHTML = `
-					<div class="profile-info">
-						<div-profil-name id="profilName"> Profil of ${profil.user} </div> 
-						<div-login-name id="loginName"> Login Name: '${profil.loginName ?? 'Guest'}' </div> 
-						</br>
-						<div-login-name id="loginName"> Login ID: '${profil.userID ?? ''}' </div> 
-						</br>
-						<button id="popup-b-clear" class="btn-style popup-b-clear">Clear Text</button>
-						<button id="popup-b-invite" class="btn-style popup-b-invite">U Game ?</button>
-            			<div id="profile-about">About: '${profil.text}' </div>
-        			</div>
-	`;
-	const profilList = document.getElementById("profile-modal") ?? null;
-	if (profilList)
-		profilList.classList.remove("hidden");
-	 // The popup now exists → attach the event
+
+// 	const modalname = document.getElementById("modal-name") ?? null;
+// 	if (modalname)
+// 		modalname.innerHTML = `
+// 					<div class="profile-info">
+// 						<div-profil-name id="profilName"> Profil of ${profil.user} </div>
+// 						<div-login-name id="loginName"> Login Name: '${profil.loginName ?? 'Guest'}' </div>
+// 						</br>
+// 						<div-login-name id="loginName"> Login ID: '${profil.userID ?? ''}' </div>
+// 						</br>
+// 						<button id="popup-b-clear" class="btn-style popup-b-clear">Clear Text</button>
+// 						<button id="popup-b-invite" class="btn-style popup-b-invite">U Game ?</button>
+// 						<button id="popup-b-block" class="btn-style popup-b-block">Block User</button>
+//             			<div id="profile-about">About: '${profil.text}' </div>
+//         			</div>
+// 	`;
+// 	const profilList = document.getElementById("profile-modal") ?? null;
+// 	if (profilList)
+// 		profilList.classList.remove("hidden");
+// 	 // The popup now exists → attach the event
+// }
+
+let count = 0;
+function incrementCounter(): number {
+	count += 1;
+	return count;
 }
 
 async function openMessagePopup(message: string) {
 
-	
 	const modalmessage = document.getElementById("modal-message") ?? null;
 	if(!message) return
 	const obj:any =  JSON.parse(message);
-	if (modalmessage)
-		modalmessage.innerHTML = `
+	if (modalmessage) {
+		const messageElement = document.createElement("div");
+		messageElement.innerHTML = `
 					<div class="profile-info">
-						</br>
-            			<div id="profile-about">Next Game Message: ${obj.link}</div>
+            			<div id="profile-about">Next Game Message ${incrementCounter()}:  ${obj.link}</div>
         			</div>`;
+		modalmessage.appendChild(messageElement);
+		modalmessage.scrollTop = modalmessage.scrollHeight;
+
+	}
 	const gameMessage = document.getElementById("game-modal") ?? null;
 	if (gameMessage)
 		gameMessage.classList.remove("hidden");
@@ -418,11 +325,9 @@ async function openMessagePopup(message: string) {
 
 
 function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn {
-	
+
 
 	let socket = getSocket();
-	
-
 
 	// Listen for the 'connect' event
 	socket.on("connect", async () => {
@@ -458,9 +363,9 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 		const bconnected = document.getElementById('b-help') as HTMLButtonElement;
 
 		if (bconnected) {
-			connected(socket);		
+			connected(socket);
 		}
-		
+
 		if (chatWindow && data.message.destination === "") {
 			const messageElement = document.createElement("div");
 			messageElement.textContent = `${data.message.user}: ${data.message.text}`;
@@ -474,7 +379,7 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 			chatWindow.scrollTop = chatWindow.scrollHeight;
 		}
 
-		
+
 		const MAX_SYSTEM_MESSAGES = 10;
 
 		if (systemWindow && data.message.destination === "system-info") {
@@ -491,20 +396,36 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 		console.log("Getuser():", getUser());
 	});
 
-	socket.on('profilMessage', (profil: ClientProfil) => {	
-		openProfilePopup(profil);		
+	socket.on('profilMessage', (profil: ClientProfil) => {
+		openProfilePopup(profil);
 		actionBtnPopUpClear(profil, socket);
 		actionBtnPopUpInvite(profil, socket);
+		actionBtnPopUpBlock(profil, socket);
 	});
 
-	socket.on('inviteGame', (invite: ClientProfil) => {	
+	socket.on('inviteGame', (invite: ClientProfil) => {
 		const chatWindow = document.getElementById("t-chatbox") as HTMLDivElement;
 		const messageElement = document.createElement("div");
     	messageElement.innerHTML =`🏓${invite.SenderName}:  ${invite.innerHtml}`;
     	chatWindow.appendChild(messageElement);
+		chatWindow.scrollTop = chatWindow.scrollHeight;
 	});
 
-	socket.on('logout', () => {	
+
+	socket.on('blockUser', (blocked: ClientProfil) => {
+		let icon = '⛔';
+		const chatWindow = document.getElementById("t-chatbox") as HTMLDivElement;
+		const messageElement = document.createElement("div");
+		if (`${blocked.text}` === '\'I have un-blocked you\'' ) { icon = '💚'};
+    	messageElement.innerText =`${icon}${blocked.SenderName}:  ${blocked.text}`;
+    	chatWindow.appendChild(messageElement);
+		chatWindow.scrollTop = chatWindow.scrollHeight;
+	});
+
+
+
+
+	socket.on('logout', () => {
 		quitChat(socket);
 	});
 
@@ -513,7 +434,7 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 	})
 
 	//receives broadcast of the next GAME
-	socket.on('nextGame', (message) => {
+	socket.on('nextGame', (message: string) => {
 		openMessagePopup(message);
 		// addMessage(message);
 	})
@@ -547,7 +468,7 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 
 	socket.on('listBud', async (myBuddies: string)  => {
 		const buddies = document.getElementById('div-buddies') as HTMLDivElement;
-		console.log('List buddies connected ', myBuddies);
+		console.log('%cList buddies connected ',color.yellow, myBuddies);
 		listBuddies(socket, buddies, myBuddies);
 	});
 
@@ -584,18 +505,6 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 			buddies.textContent = '';
 			buddies.innerHTML = '';
 
-
-			const value = await client.chatTest();
-            if (value.kind === "success") {
-                console.log(value.payload);
-            } else if (value.kind === "notLoggedIn") {
-                console.log('not logged in');
-            } else {
-                console.log('unknown response: ', value);
-            }
-
-
-
 			const buttonPro = document.getElementById("close-modal") ?? null;
 
 			if (buttonPro)
@@ -613,6 +522,9 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 				buttonMessage.addEventListener("click", () => {
   				const gameMessage = document.getElementById("game-modal") ?? null;
 				if (gameMessage) gameMessage.classList.add("hidden");
+				const modalmessage = document.getElementById("modal-message") ?? null;
+				if (modalmessage) {modalmessage.innerHTML = "";}
+
 			});
 
 
@@ -638,7 +550,7 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
     						    break;
 							case '@quit':
 								quitChat(socket);
-    						    break;	
+    						    break;
     						default:
 								const user = getUser()?.name;
 								// Ensure we have a user AND socket is connected
@@ -669,7 +581,7 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 				if (chatWindow) {
 					chatWindow.innerHTML = '';
 				}
-				clear(socket); //DEV testing broadcastGames
+				//clearChatWindow(socket); //DEV testing broadcastGames
 			});
 
 			// Dev Game message button
