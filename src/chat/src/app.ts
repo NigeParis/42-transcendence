@@ -20,6 +20,7 @@ import { sendProfil } from './sendProfil';
 import { setGameLink } from './setGameLink';
 import { nextGame_SocketListener } from './nextGame_SocketListener';
 import { list_SocketListener } from './list_SocketListener';
+import { filter_Blocked_user } from './filter_Blocked_user'
 
 // colors for console.log
 export const color = {
@@ -196,6 +197,37 @@ async function onReady(fastify: FastifyInstance) {
 			socket.emit('welcome', { msg: 'Welcome to the chat! : ' });
 			// Send object directly — DO NOT wrap it in a string
 			broadcast(fastify, obj, obj.SenderWindowID);
+			
+			const users: User[] = fastify.db.getAllUsers() ?? [];
+			console.log('DEBUG: senderWindow :', getUserById(users, obj.SenderUserID)?.name);
+			
+			
+			
+			
+			fastify.io.fetchSockets().then((sockets) => {
+				for (const socket of sockets) {
+					const clientInfo = clientChat.get(socket.id);
+					if (!clientInfo?.user) {
+						console.log(color.yellow, `Skipping socket ${socket.id} (no user found)`);
+						continue;
+					}
+					console.log('DEBUG: UserIDWindow :', getUserByName(users, clientInfo.user)?.id);
+					const IDUser = getUserByName(users, clientInfo.user)?.id;
+
+					console.log(filter_Blocked_user(fastify, obj, IDUser?? ""));
+					
+					
+				}
+	});
+
+
+
+
+
+
+
+
+
 			// console.log(color.red, 'DEBUG LOG: connected in the Chat :', connectedUser(fastify.io), color.reset);
 		});
 
@@ -227,7 +259,7 @@ async function onReady(fastify: FastifyInstance) {
 
 		  if (!clientName) return;
 		  	console.log(color.green, `Client logging out: ${clientName} (${socket.id})`);
-		  	const obj: obj = {
+		  	const obj: ClientMessage = {
 				command: '',
 				destination: 'system-info',
 		    	type: 'chat' as const,
@@ -239,6 +271,9 @@ async function onReady(fastify: FastifyInstance) {
 				timestamp: Date.now(),
 				SenderWindowID: socket.id,
 				Sendertext: '',
+				userID: '', 
+				SenderUserName: '', 
+				SenderUserID: '', 
 			};
 			broadcast(fastify, obj, socket.id);
 			// Optional: remove from map
@@ -257,7 +292,7 @@ async function onReady(fastify: FastifyInstance) {
 			if (reason === 'transport error') return;
 
 			if (clientName !== null) {
-				const obj: obj = {
+				const obj: ClientMessage = {
 					command: '',
 					destination: 'system-info',
 					type: 'chat',
@@ -269,6 +304,9 @@ async function onReady(fastify: FastifyInstance) {
 					timestamp: Date.now(),
 					SenderWindowID: socket.id,
 					Sendertext: '',
+					userID: '',
+					SenderUserName: '', 
+					SenderUserID: '',
 				};
 
 				broadcast(fastify, obj, obj.SenderWindowID);
@@ -285,7 +323,7 @@ async function onReady(fastify: FastifyInstance) {
 			);
 
 			if (clientName !== null) {
-				const obj: obj = {
+				const obj: ClientMessage = {
 					command: '',
 					destination: 'system-info',
 					type: 'chat',
@@ -297,6 +335,9 @@ async function onReady(fastify: FastifyInstance) {
 					timestamp: Date.now(),
 					SenderWindowID: socket.id,
 					Sendertext: '',
+					userID: '', 
+					SenderUserName: '', 
+					SenderUserID: '',
 				};
 				// console.log(color.blue, 'DEBUG LOG: BROADCASTS OUT :', obj.SenderWindowID);
 
@@ -316,7 +357,7 @@ async function onReady(fastify: FastifyInstance) {
 			);
 
 			if (clientName !== null) {
-				const obj: obj = {
+				const obj: ClientMessage = {
 					command: prvMessage.command,
 					destination: 'privateMsg',
 					type: 'chat',
@@ -328,6 +369,9 @@ async function onReady(fastify: FastifyInstance) {
 					timestamp: Date.now(),
 					SenderWindowID: socket.id,
 					Sendertext: '',
+					userID: '', 
+					SenderUserName: '', 
+					SenderUserID:'',
 				};
 				// console.log(color.blue, 'DEBUG LOG: PRIV MESSAGE OUT :', obj.SenderWindowID);
 				sendPrivMessage(fastify, obj, obj.SenderWindowID);
@@ -553,7 +597,7 @@ async function onReady(fastify: FastifyInstance) {
     		    `Client entered the Chat: ${clientName} (${socket.id})`,
     		);
     		if (clientName !== null) {
-    		    const obj: obj = {
+    		    const obj: ClientMessage = {
 					command: '',
 					destination: 'system-info',
     		        type: 'chat',
@@ -565,6 +609,9 @@ async function onReady(fastify: FastifyInstance) {
     		        timestamp: Date.now(),
     		        SenderWindowID: socket.id,
 					Sendertext: "",
+					userID: '', 
+					SenderUserName: '', 
+					SenderUserID: '',
     		    };
     		    broadcast(fastify, obj, obj.SenderWindowID);
     		}
