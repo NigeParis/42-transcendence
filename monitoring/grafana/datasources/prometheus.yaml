@@ -6,7 +6,7 @@ datasources:
     type: prometheus
     uid: prometheus
     access: proxy
-    url: http://monitoring-prometheus:9090
+    url: http://mon-prometheus:9090
     isDefault: true
     jsonData:
       timeInterval: 15s

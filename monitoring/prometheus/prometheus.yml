@@ -4,11 +4,11 @@ global:
 scrape_configs:
   - job_name: 'prometheus'
     static_configs:
-      - targets: ['monitoring-prometheus:9090']
+      - targets: ['mon-prometheus:9090']
 
   - job_name: 'cadvisor'
     static_configs:
-      - targets: ['monitoring-cadvisor:8080']
+      - targets: ['mon-cadvisor:8080']
 
   - job_name: 'blackbox'
     metrics_path: /probe
@@ -30,4 +30,4 @@ scrape_configs:
         target_label: instance
 
       - target_label: __address__
-        replacement: monitoring-blackbox:9115
+        replacement: mon-blackbox:9115
