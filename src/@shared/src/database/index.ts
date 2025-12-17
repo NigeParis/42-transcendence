@@ -28,7 +28,7 @@ export const useDatabase = fp<FastifyPluginAsync>(async function(
 	if (dbAdded) { return; }
 	dbAdded = true;
 	const path = process.env.DATABASE_DIR;
-	if (isNullish(path)) { 
+	if (isNullish(path)) {
 		f.log.fatal('env `DATABASE_DIR` not defined');
 		throw 'env `DATABASE_DIR` not defined';
 	 }
