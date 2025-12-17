@@ -19,7 +19,7 @@ const route: FastifyPluginAsync = async (fastify): Promise<void> => {
 			config: { requireAuth: false },
 		},
 		async function(req, res) {
-			broadcast(this, { command: '', destination: '', user: 'CMwaLeSever!!', text: req.body.message, SenderWindowID: 'server' });
+			//broadcast(this, { command: '', destination: '', user: 'CMwaLeSever!!', text: req.body.message, SenderWindowID: 'server' });
 			void res;
 		},
 	);

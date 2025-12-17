@@ -1,9 +1,18 @@
 export type ClientMessage = {
 	command: string
 	destination: string;
+	type: string,
 	user: string;
+	userID: string,
+	token: string
+	frontendUserName: string,
+	frontendUser: string,
 	text: string;
-	SenderWindowID: string;
+	SenderWindowID: string,
+	SenderUserName: string,
+	SenderUserID: string,
+	timestamp: number,
+	Sendertext: string,
 };
 
 

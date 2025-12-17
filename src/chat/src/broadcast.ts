@@ -1,6 +1,7 @@
 import type { ClientMessage } from './chat_types';
 import { clientChat, color } from './app';
 import { FastifyInstance } from 'fastify';
+import { getUserById } from './getUserById';
 
 export function broadcast(fastify: FastifyInstance, data: ClientMessage, sender?: string) {
 	fastify.io.fetchSockets().then((sockets) => {
@@ -13,6 +14,8 @@ export function broadcast(fastify: FastifyInstance, data: ClientMessage, sender?
 				console.log(color.yellow, `Skipping socket ${socket.id} (no user found)`);
 				continue;
 			}
+			// console.log('BLOCKED MAYBE', getUserById(sender));
+			// console.log('TARGET',socket.id );
 			// Emit structured JSON object
 			socket.emit('MsgObjectServer', { message: data });
 			// Debug logs

@@ -193,6 +193,7 @@ function logout(socket: Socket) {
 
 async function connected(socket: Socket): Promise<void> {
 
+	setTimeout(async () => {
 	try {
 			const buddies = document.getElementById('div-buddies') as HTMLDivElement;
 			const loggedIn = isLoggedIn();
@@ -201,24 +202,23 @@ async function connected(socket: Socket): Promise<void> {
 			let oldUser = localStorage.getItem("oldName") ?? "";
 			console.log('%coldUser:',color.yellow, oldUser);
 			if (loggedIn?.name === undefined) {console.log('');return ;}
-			setTimeout(() => {
 				oldUser =  loggedIn.name ?? "";
-			}, 0);
-			// const res = await client.guestLogin();
-			let user = await updateUser();
-			console.log('%cUser?name:',color.yellow, user?.name);
-			localStorage.setItem("oldName", oldUser);
-			buddies.textContent = "";
-			socket.emit('list', {
-				oldUser: oldUser,
-				user: user?.name,
-			});
-	} catch (e) {
-		console.error("Login error:", e);
-		showError('Failed to login: Unknown error');
-	}
-};
-
+				// const res = await client.guestLogin();
+				let user = await updateUser();
+				console.log('%cUser?name:',color.yellow, user?.name);
+				localStorage.setItem("oldName", oldUser);
+				buddies.textContent = "";
+				socket.emit('list', {
+					oldUser: oldUser,
+					user: user?.name,
+				});
+			} catch (e) {
+				console.error("Login error:", e);
+				showError('Failed to login: Unknown error');
+			}
+		}, 16);
+	};
+		
 async function whoami(socket: Socket) {
 	try {
 		const chatWindow = document.getElementById("t-chatbox") as HTMLDivElement;
@@ -281,6 +281,8 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 
 
 	let socket = getSocket();
+	let blockMessage: boolean;
+	setTimeout(async () => {
 
 	// Listen for the 'connect' event
 	socket.on("connect", async () => {
@@ -310,6 +312,7 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
     	systemWindow.appendChild(messageElement);
 		systemWindow.scrollTop = systemWindow.scrollHeight;
 	});
+}, 0);
 
 	// Listen for messages from the server "MsgObjectServer"
 	socket.on("MsgObjectServer", (data: { message: ClientMessage}) => {
@@ -321,8 +324,8 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 		if (bconnected) {
 			connected(socket);
 		}
-
-		if (chatWindow && data.message.destination === "") {
+		console.log('stahe   eeee  :', blockMessage);
+		if (chatWindow && data.message.destination === "" && !blockMessage) {
 			const messageElement = document.createElement("div");
 			messageElement.textContent = `${data.message.user}: ${data.message.text}`;
 			chatWindow.appendChild(messageElement);
@@ -394,7 +397,7 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 			console.log(' =================== >>> UserTarget:', data.userTarget);
 			console.log(' =================== >>> By:', data.by);
 			let message = "";
-			if (data.userState === "block") {message = "un-block"} else{message = "block"}
+			if (data.userState === "block") {message = "un-block", blockMessage = true} else{message = "block", blockMessage = false}
 			blockUserBtn.textContent = message;
 		}
 	});
@@ -587,5 +590,6 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 			});
 		}
 	}
+	
 };
 addRoute('/chat', handleChat, { bypass_auth: true });
