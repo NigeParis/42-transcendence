@@ -465,6 +465,8 @@ async function onReady(fastify: FastifyInstance) {
 							token: '',
 							text: '',
 							timestamp: Date.now(),
+							frontendUserName: '',
+							frontendUser: '',
 							SenderWindowID: socket.id,
 							Sendertext: 'You have blocked',
 						};
