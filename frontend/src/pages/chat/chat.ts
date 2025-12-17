@@ -261,8 +261,8 @@ async function openMessagePopup(message: string) {
 	if (modalmessage) {
 		const messageElement = document.createElement("div");
 		messageElement.innerHTML = `
-					<div class="profile-info">
-            			<div id="profile-about">Next Game Message ${incrementCounter()}:  ${obj.link}</div>
+					<div class="profile-info"
+            			<div id="profile-about">Next Game Message ${incrementCounter()}:  ${obj}</div>
         			</div>`;
 		modalmessage.appendChild(messageElement);
 		modalmessage.scrollTop = modalmessage.scrollHeight;
@@ -356,6 +356,7 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 		profil.SenderID = getUser()?.id ?? "";
 		profil.SenderName = getUser()?.name ?? "";
 		openProfilePopup(profil);
+		socket.emit('isBlockdBtn', profil);
 		console.log(`DEBUG LOG: userId:${profil.userID}: senderID${profil.SenderID}' senderID:${getUser()?.id}`);
 		console.log(`DEBUG LOG: user:${profil.user}: sender:${profil.SenderName}' senderID:${getUser()?.name}`);
 		socket.emit('check_Block_button', profil);
@@ -375,9 +376,10 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 
 	socket.on('blockUser', (blocked: ClientProfil) => {
 		let icon = '⛔';
+
 		const chatWindow = document.getElementById("t-chatbox") as HTMLDivElement;
 		const messageElement = document.createElement("div");
-		if (`${blocked.text}` === 'I have un-blocked you' ) { icon = '💚'};
+		if (`${blocked.text}` === 'I have un-blocked you' ) {icon = '💚'};
     	messageElement.innerText =`${icon}${blocked.SenderName}:  ${blocked.text}`;
     	chatWindow.appendChild(messageElement);
 		chatWindow.scrollTop = chatWindow.scrollHeight;
@@ -418,7 +420,7 @@ function handleChat(_url: string, _args: RouteHandlerParams): RouteHandlerReturn
 
 		setTimeout(() => {
 			connected(socket);
-		}, 0);
+		}, 16);
 		if (window.location.pathname === '/app/chat') {
 			console.log('%cWindow is focused on /chat:' + socket.id, color.green);
 			if (socket.id) {

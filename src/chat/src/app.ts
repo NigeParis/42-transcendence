@@ -134,6 +134,7 @@ declare module 'fastify' {
 			list: (oldUser: string, user: string) => void;
 			updateClientName: (oldUser: string, user: string) => void;
 			blockBtn: (data: blockedUnBlocked) => void;			
+			isBlockdBtn: (data: blockedUnBlocked) => void;			
 			check_Block_button: (data: blockedUnBlocked) => void;			
 		}>;
 	}
@@ -189,7 +190,7 @@ async function onReady(fastify: FastifyInstance) {
 		socket.on('message', (message: string) => {
 			// console.info(color.blue, 'DEBUG LOG: Socket connected!', color.reset, socket.id);
 			// console.log( color.blue, 'DEBUG LOG: Received message from client', color.reset, message);
-			const obj: obj = JSON.parse(message) as ClientMessage;
+			const obj: ClientMessage = JSON.parse(message) as ClientMessage;
 			clientChat.set(socket.id, { user: obj.user, lastSeen: Date.now() });
 			// console.log(color.green, 'DEBUG LOG: Message from client', color.reset, `Sender: login name: ${obj.user} - windowID ${obj.SenderWindowID} - text message: ${obj.text}`);
 			socket.emit('welcome', { msg: 'Welcome to the chat! : ' });
@@ -202,27 +203,6 @@ async function onReady(fastify: FastifyInstance) {
 
 		list_SocketListener(fastify, socket);
 
-		
-
-		// socket.on('list', (object) => {
-
-		// 	const userFromFrontend = object || null;
-		// 	const client = clientChat.get(socket.id) || null;
-
-		// 	//console.log(color.red, 'DEBUG LOG: list activated', userFromFrontend, color.reset, socket.id);
-
-		// 	if (userFromFrontend.oldUser !== userFromFrontend.user) {
-		// 		//console.log(color.red, 'DEBUG LOG: list activated', userFromFrontend.oldUser, color.reset);
-		// 		// if (client?.user === null) {
-		// 		// 	console.log('ERROR: clientName is NULL');
-		// 		// 	return;
-		// 		// };
-		// 		if (client) {
-  		// 			client.user = userFromFrontend.user;
-		// 		}
-		// 	}
-		// 	connectedUser(fastify.io, socket.id);
-		// });
 
 		socket.on('updateClientName', (object) => {
 			const userFromFrontend = object || null;
@@ -384,6 +364,42 @@ async function onReady(fastify: FastifyInstance) {
 			}
 		});
 
+		socket.on('isBlockdBtn', async (data: ClientProfil) => {
+			const profilBlock: ClientProfil = data || '';
+			const users: User[] = fastify.db.getAllUsers() ?? [];
+			const UserToBlock: User | null = getUserByName(users, `${profilBlock.user}`);
+			const UserAskingToBlock: User | null = getUserByName(users, `${profilBlock.SenderName}`);
+
+			console.log(color.yellow, `user to block: ${profilBlock.user}`);
+			console.log(color.yellow, UserToBlock);
+			console.log(color.yellow, `user Asking to block: ${profilBlock.SenderName}`);
+			console.log(color.yellow, UserAskingToBlock);
+
+			if (!UserAskingToBlock || !UserToBlock) return;
+
+			if(isUser_BlockedBy_me(fastify, UserAskingToBlock!.id, UserToBlock!.id)) {
+				const message: blockedUnBlocked  = 
+					{
+						userState: "block",
+						userTarget: UserToBlock.name,
+						by: UserAskingToBlock.name,
+
+
+					};
+					socket.emit('blockBtn', message);
+			} else {
+
+					const message: blockedUnBlocked  = 
+					{
+						userState: "un-block",
+						userTarget: UserToBlock.name,
+						by: UserAskingToBlock.name,
+
+					};
+					socket.emit('blockBtn', message);
+
+
+			}		});
 
 
 		socket.on('blockUser', async (data: string) => {
@@ -393,16 +409,37 @@ async function onReady(fastify: FastifyInstance) {
 			const UserToBlock: User | null = getUserByName(users, `${profilBlock.user}`);
 			const UserAskingToBlock: User | null = getUserByName(users, `${profilBlock.SenderName}`);
 
-			console.log(color.yellow, `user to block: ${profilBlock.user}`);
-			console.log(color.yellow, UserToBlock);
-			console.log(color.yellow, `user Asking to block: ${profilBlock.SenderName}`);
-			console.log(color.yellow, UserAskingToBlock);
-			console.log(color.red, clientName);
+			// console.log(color.yellow, `user to block: ${profilBlock.user}`);
+			// console.log(color.yellow, UserToBlock);
+			// console.log(color.yellow, `user Asking to block: ${profilBlock.SenderName}`);
+			// console.log(color.yellow, UserAskingToBlock);
+			// console.log(color.red, clientName);
 
 			const usersBlocked: BlockedData[] = fastify.db.getAllBlockedUsers() ?? [];
 			if (!UserAskingToBlock || !UserToBlock || !usersBlocked) return;
 			const userAreBlocked: boolean = isBlocked(UserAskingToBlock, UserToBlock, usersBlocked);
-			isUser_BlockedBy_me(fastify, UserAskingToBlock!.id, UserToBlock!.id);
+			if(isUser_BlockedBy_me(fastify, UserAskingToBlock!.id, UserToBlock!.id)) {
+				const message: blockedUnBlocked  = 
+					{
+						userState: "un-block",
+						userTarget: "",
+						by: "",
+
+					};
+					socket.emit('blockBtn', message);
+			} else {
+
+					const message: blockedUnBlocked  = 
+					{
+						userState: "block",
+						userTarget: UserToBlock.name,
+						by: UserAskingToBlock.name,
+
+					};
+					socket.emit('blockBtn', message);
+
+
+			}
 
 
 			if (userAreBlocked) {
@@ -436,14 +473,14 @@ async function onReady(fastify: FastifyInstance) {
 					}
 					// profilBlock.Sendertext = `'You have un-blocked '`;
 					sendBlocked(fastify, blockedMessage, profilBlock);
-					const message: blockedUnBlocked  = 
-					{
-						userState: "un-block",
-						userTarget: "",
-						by: "",
+					// const message: blockedUnBlocked  = 
+					// {
+					// 	userState: "un-block",
+					// 	userTarget: "",
+					// 	by: "",
 
-					};
-					socket.emit('blockBtn', message);
+					// };
+					// socket.emit('blockBtn', message);
 				}
 			}
 			else {
@@ -475,14 +512,14 @@ async function onReady(fastify: FastifyInstance) {
 						//   clientChat.delete(obj.user);
 					}
 					sendBlocked(fastify, blockedMessage, profilBlock);
-					const message: blockedUnBlocked  = 
-					{
-						userState: "block",
-						userTarget: UserToBlock.name,
-						by: UserAskingToBlock.name,
+					// const message: blockedUnBlocked  = 
+					// {
+					// 	userState: "block",
+					// 	userTarget: UserToBlock.name,
+					// 	by: UserAskingToBlock.name,
 
-					};
-					socket.emit('blockBtn', message);
+					// };
+					// socket.emit('blockBtn', message);
 				}
 			}
 		});
