@@ -6,7 +6,7 @@ export function actionBtnPopUpBlock(block: ClientProfil, senderSocket: Socket) {
 		setTimeout(() => {
 			const blockUserBtn = document.querySelector("#popup-b-block");
 			blockUserBtn?.addEventListener("click", () => {
-				block.text = ''; 
+				block.text = '';
 				blockUser(block, senderSocket);
 			});
     	}, 0)
