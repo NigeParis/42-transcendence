@@ -9,7 +9,7 @@ import { getProfil } from './getProfil';
 import { addMessage } from './addMessage';
 import { broadcastMsg } from './broadcastMsg';
 import { isLoggedIn } from './isLoggedIn';
-import type { ClientMessage, ClientProfil, obj } from './types_front';
+import type { ClientMessage, ClientProfil } from './types_front';
 import { openProfilePopup } from './openProfilePopup';
 import { actionBtnPopUpClear } from './actionBtnPopUpClear';
 import { actionBtnPopUpBlock } from './actionBtnPopUpBlock';
