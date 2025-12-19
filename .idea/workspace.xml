@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8218e5ba-3b12-4bf2-94a6-d6e732938beb" name="Changes" comment="(schism): started separating backend from frontend" />
+    <list default="true" id="8218e5ba-3b12-4bf2-94a6-d6e732938beb" name="Changes" comment="(schism): started separating backend from frontend">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -91,7 +93,7 @@
       <updated>1765884886075</updated>
       <workItem from="1765884888641" duration="1507000" />
       <workItem from="1765886413897" duration="6289000" />
-      <workItem from="1766152868683" duration="417000" />
+      <workItem from="1766152868683" duration="1966000" />
     </task>
     <task id="LOCAL-00001" summary="(schism): started separating backend from frontend">
       <option name="closed" value="true" />
