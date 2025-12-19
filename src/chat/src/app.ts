@@ -9,7 +9,7 @@ import { Server, Socket } from 'socket.io';
 import type { User } from '@shared/database/mixin/user';
 import type { BlockedData } from '@shared/database/mixin/blocked';
 import { broadcast } from './broadcast';
-import type { ClientProfil, ClientMessage } from './chat_types';
+import type { ClientProfil, ClientMessage, obj } from './chat_types';
 import { sendPrivMessage } from './sendPrivMessage';
 import { sendBlocked } from './sendBlocked';
 import { sendInvite } from './sendInvite';
@@ -36,22 +36,18 @@ declare const __SERVICE_NAME: string;
 // key = socket, value = clientname
 interface ClientInfo {
   user: string;
+  socket: string
   lastSeen: number;
 }
 
-// function setAboutPlayer(about: string): string {
-// 	if (!about) {
-// 		about = 'Player is good Shape - This is a default description';
-// 	}
-// 	return about;
-// };
 
-// function setGameLink(link: string): string {
-// 	if (!link) {
-// 		link = '<a href=\'https://google.com\' style=\'color: blue; text-decoration: underline; cursor: pointer;\'>Click me</a>';
-// 	}
-// 	return link;
-// };
+export type blockedUnBlocked =
+{
+	userState: string,
+	userTarget: string,
+	by: string,
+};
+
 
 export const clientChat = new Map<string, ClientInfo>();
 
@@ -107,13 +103,47 @@ declare module 'fastify' {
 			client_left: (userName: string, why: string) => void;
 			list: (oldUser: string, user: string) => void;
 			updateClientName: (oldUser: string, user: string) => void;
+			blockBtn: (data: blockedUnBlocked) => void;
+			isBlockdBtn: (data: blockedUnBlocked) => void;
+			check_Block_button: (data: blockedUnBlocked) => void;
 		}>;
 	}
 }
 
+/**
+ * function get the object user in an array of users[] by name
+ * @param users
+ * @param name
+ * @returns
+ */
+function getUserById(users: User[], id: string) {
+	return users.find(user => user.id === id) || null;
+};
+
+function isUser_BlockedBy_me(fastify: FastifyInstance, blockedBy_Id : string, isBlocked_Id: string): string {
+	const users: User[] = fastify.db.getAllUsers() ?? [];
+	if (!users) return '';
+	const UserToBlock: User | null = getUserById(users, `${isBlocked_Id}`);
+	const UserAskingToBlock: User | null = getUserById(users, `${blockedBy_Id}`);
+	if (!UserToBlock) {
+		console.log(color.blue, `'User: ${UserAskingToBlock?.id} has not blocked' ${isBlocked_Id}`);
+		return '';
+	};
+	if (!UserAskingToBlock) {
+		console.log(color.blue, `'User: ${UserToBlock?.id} has not blocked by' ${blockedBy_Id}`);
+		return '';
+	};
+	const usersBlocked: BlockedData[] = fastify.db.getAllBlockedUsers() ?? [];
+	const userAreBlocked: boolean = isBlocked(UserAskingToBlock, UserToBlock, usersBlocked);
+	if (userAreBlocked) {
+		console.log(color.yellow, `'User :${UserAskingToBlock.name}) Hhas UN blocked ${UserToBlock.name}`);
+		return UserAskingToBlock.name;
+	}
+	console.log(color.blue, `'User :${UserAskingToBlock.name}) has BBBblocked ${UserToBlock.name}`);
+	return '';
+};
+
 async function onReady(fastify: FastifyInstance) {
-
-
 	// shows address for connection au server transcendance
 	const session = process.env.SESSION_MANAGER ?? '';
 	if (session) {
@@ -122,44 +152,35 @@ async function onReady(fastify: FastifyInstance) {
 		console.log(color.yellow, 'Connect at : https://' + machineName + ':8888/app/login');
 	}
 
-
 	fastify.io.on('connection', (socket: Socket) => {
-
 		socket.on('message', (message: string) => {
 			// console.info(color.blue, 'DEBUG LOG: Socket connected!', color.reset, socket.id);
 			// console.log( color.blue, 'DEBUG LOG: Received message from client', color.reset, message);
 			const obj: ClientMessage = JSON.parse(message) as ClientMessage;
-			clientChat.set(socket.id, { user: obj.user, lastSeen: Date.now() });
+			clientChat.set(socket.id, { user: obj.user, socket: socket.id, lastSeen: Date.now() });
 			// console.log(color.green, 'DEBUG LOG: Message from client', color.reset, `Sender: login name: ${obj.user} - windowID ${obj.SenderWindowID} - text message: ${obj.text}`);
 			socket.emit('welcome', { msg: 'Welcome to the chat! : ' });
 			// Send object directly — DO NOT wrap it in a string
 			broadcast(fastify, obj, obj.SenderWindowID);
+
+			// const users: User[] = fastify.db.getAllUsers() ?? [];
+			// console.log('DEBUG: senderWindow :', getUserById(users, obj.SenderUserID)?.name);
+			// fastify.io.fetchSockets().then((sockets) => {
+			// 	for (const socket of sockets) {
+			// 		const clientInfo = clientChat.get(socket.id);
+			// 			if (!clientInfo?.user) {
+			// 				console.log(color.yellow, `Skipping socket ${socket.id} (no user found)`);
+			// 				continue;
+			// 			}
+			// 			console.log('DEBUG: UserIDWindow :', getUserByName(users, clientInfo.user)?.id);
+			// 			const IDUser = getUserByName(users, clientInfo.user)?.id;
+			// 			console.log(filter_Blocked_user(fastify, obj, IDUser?? ""));
+			// 		}
+			// });
 			// console.log(color.red, 'DEBUG LOG: connected in the Chat :', connectedUser(fastify.io), color.reset);
 		});
-
 		nextGame_SocketListener(fastify, socket);
-
 		list_SocketListener(fastify, socket);
-
-		// socket.on('list', (object) => {
-
-		// 	const userFromFrontend = object || null;
-		// 	const client = clientChat.get(socket.id) || null;
-
-		// 	//console.log(color.red, 'DEBUG LOG: list activated', userFromFrontend, color.reset, socket.id);
-
-		// 	if (userFromFrontend.oldUser !== userFromFrontend.user) {
-		// 		//console.log(color.red, 'DEBUG LOG: list activated', userFromFrontend.oldUser, color.reset);
-		// 		// if (client?.user === null) {
-		// 		// 	console.log('ERROR: clientName is NULL');
-		// 		// 	return;
-		// 		// };
-		// 		if (client) {
-  		// 			client.user = userFromFrontend.user;
-		// 		}
-		// 	}
-		// 	connectedUser(fastify.io, socket.id);
-		// });
 
 		socket.on('updateClientName', (object) => {
 			const userFromFrontend = object || null;
@@ -183,16 +204,22 @@ async function onReady(fastify: FastifyInstance) {
 		  const clientName = clientInfo?.user;
 
 		  if (!clientName) return;
-		  	console.log(color.green, `Client logging out: ${clientName} (${socket.id})`);
-		  	const obj = {
+		  	// console.log(color.green, `Client logging out: ${clientName} (${socket.id})`);
+		  	const obj: ClientMessage = {
 				command: '',
 				destination: 'system-info',
 		    	type: 'chat' as const,
 		    	user: clientName,
 		    	token: '',
 		    	text: 'LEFT the chat',
-		    	timestamp: Date.now(),
-		    	SenderWindowID: socket.id,
+		    	frontendUserName: '',
+				frontendUser: '',
+				timestamp: Date.now(),
+				SenderWindowID: socket.id,
+				Sendertext: '',
+				userID: '',
+				SenderUserName: '',
+				SenderUserID: '',
 			};
 			broadcast(fastify, obj, socket.id);
 			// Optional: remove from map
@@ -203,23 +230,25 @@ async function onReady(fastify: FastifyInstance) {
 
 		socket.on('disconnecting', (reason) => {
 			const clientName = clientChat.get(socket.id)?.user || null;
-			console.log(
-				color.green,
-				`Client disconnecting: ${clientName} (${socket.id}) reason:`,
-				reason,
-			);
+			// console.log(color.green, `Client disconnecting: ${clientName} (${socket.id}) reason:`, reason,);
 			if (reason === 'transport error') return;
 
 			if (clientName !== null) {
-				const obj = {
+				const obj: ClientMessage = {
 					command: '',
 					destination: 'system-info',
 					type: 'chat',
 					user: clientName,
 					token: '',
 					text: 'LEFT the chat',
+					frontendUserName: '',
+					frontendUser: '',
 					timestamp: Date.now(),
 					SenderWindowID: socket.id,
+					Sendertext: '',
+					userID: '',
+					SenderUserName: '',
+					SenderUserID: '',
 				};
 
 				broadcast(fastify, obj, obj.SenderWindowID);
@@ -227,24 +256,25 @@ async function onReady(fastify: FastifyInstance) {
 		});
 
 		socket.on('client_left', (data) => {
+			void data;
 			const clientName = clientChat.get(socket.id)?.user || null;
-			const leftChat = data || null;
-			console.log(
-				color.green,
-				`Left the Chat User: ${clientName} id Socket: ${socket.id} reason:`,
-				leftChat.why,
-			);
-
+			// const leftChat = data || null; console.log(color.green, `Left the Chat User: ${clientName} id Socket: ${socket.id} reason:`, leftChat.why,);
 			if (clientName !== null) {
-				const obj = {
+				const obj: ClientMessage = {
 					command: '',
 					destination: 'system-info',
 					type: 'chat',
 					user: clientName,
 					token: '',
 					text: 'LEFT the chat but the window is still open',
+					frontendUserName: '',
+					frontendUser: '',
 					timestamp: Date.now(),
 					SenderWindowID: socket.id,
+					Sendertext: '',
+					userID: '',
+					SenderUserName: '',
+					SenderUserID: '',
 				};
 				// console.log(color.blue, 'DEBUG LOG: BROADCASTS OUT :', obj.SenderWindowID);
 
@@ -257,42 +287,43 @@ async function onReady(fastify: FastifyInstance) {
 		socket.on('privMessage', (data) => {
 			const clientName: string = clientChat.get(socket.id)?.user || '';
 			const prvMessage: ClientMessage = JSON.parse(data) || '';
-			console.log(
-				color.blue,
-				`DEBUG LOG: ClientName: '${clientName}' id Socket: '${socket.id}' target Name:`,
-				prvMessage.command,
-			);
-
+			// console.log(color.blue, `DEBUG LOG: ClientName: '${clientName}' id Socket: '${socket.id}' target Name:`, prvMessage.command,);
 			if (clientName !== null) {
-				const obj = {
+				const obj: ClientMessage = {
 					command: prvMessage.command,
 					destination: 'privateMsg',
 					type: 'chat',
 					user: clientName,
 					token: '',
 					text: prvMessage.text,
+					frontendUserName: '',
+					frontendUser: '',
 					timestamp: Date.now(),
 					SenderWindowID: socket.id,
+					Sendertext: '',
+					userID: '',
+					SenderUserName: '',
+					SenderUserID:'',
 				};
 				// console.log(color.blue, 'DEBUG LOG: PRIV MESSAGE OUT :', obj.SenderWindowID);
 				sendPrivMessage(fastify, obj, obj.SenderWindowID);
-				//   clientChat.delete(obj.user);
+				// clientChat.delete(obj.user);
 			}
 		});
 
 		socket.on('profilMessage', async (data: string) => {
 			const clientName: string = clientChat.get(socket.id)?.user || '';
 			const profilMessage: ClientMessage = JSON.parse(data) || '';
-			const users: User[] = fastify.db.getAllUsers() ?? [];
+			// const users: User[] = fastify.db.getAllUsers() ?? [];
 			// console.log(color.yellow, 'DEBUG LOG: ALL USERS EVER CONNECTED:', users);
 			// console.log(color.blue, `DEBUG LOG: ClientName: '${clientName}' id Socket: '${socket.id}' target profil:`, profilMessage.user);
 			const profile: ClientProfil = await makeProfil(fastify, profilMessage.user, socket);
 			if (clientName !== null) {
-				const testuser: User | null = getUserByName(users, profilMessage.user);
-				console.log(color.yellow, 'user:', testuser?.name ?? 'Guest');
-				console.log(color.blue, 'DEBUG - profil message MESSAGE OUT :', profile.SenderWindowID);
+				// const testuser: User | null = getUserByName(users, profilMessage.user);
+				// console.log(color.yellow, 'user:', testuser?.name ?? 'Guest');
+				// console.log(color.blue, 'DEBUG - profil message MESSAGE OUT :', profile.SenderWindowID);
 				sendProfil(fastify, profile, profile.SenderWindowID);
-				//   clientChat.delete(obj.user);
+				// clientChat.delete(obj.user);
 			}
 		});
 
@@ -309,6 +340,39 @@ async function onReady(fastify: FastifyInstance) {
 			}
 		});
 
+		socket.on('isBlockdBtn', async (data: ClientProfil) => {
+			const profilBlock: ClientProfil = data || '';
+			const users: User[] = fastify.db.getAllUsers() ?? [];
+			const UserToBlock: User | null = getUserByName(users, `${profilBlock.user}`);
+			const UserAskingToBlock: User | null = getUserByName(users, `${profilBlock.SenderName}`);
+
+			// console.log(color.yellow, `user to block: ${profilBlock.user}`);
+			// console.log(color.yellow, UserToBlock);
+			// console.log(color.yellow, `user Asking to block: ${profilBlock.SenderName}`);
+			// console.log(color.yellow, UserAskingToBlock);
+			// console.log(color.red, clientName);
+
+			if (!UserAskingToBlock || !UserToBlock) return;
+
+			if (isUser_BlockedBy_me(fastify, UserAskingToBlock!.id, UserToBlock!.id)) {
+				const message: blockedUnBlocked = {
+					userState: 'block',
+					userTarget: UserToBlock.name,
+					by: UserAskingToBlock.name,
+				};
+				socket.emit('blockBtn', message);
+			}
+			else {
+
+				const message: blockedUnBlocked = {
+					userState: 'un-block',
+					userTarget: UserToBlock.name,
+					by: UserAskingToBlock.name,
+				};
+				socket.emit('blockBtn', message);
+			}
+		});
+
 		socket.on('blockUser', async (data: string) => {
 			const clientName: string = clientChat.get(socket.id)?.user || '';
 			const profilBlock: ClientProfil = JSON.parse(data) || '';
@@ -316,34 +380,52 @@ async function onReady(fastify: FastifyInstance) {
 			const UserToBlock: User | null = getUserByName(users, `${profilBlock.user}`);
 			const UserAskingToBlock: User | null = getUserByName(users, `${profilBlock.SenderName}`);
 
-			console.log(color.yellow, `user to block: ${profilBlock.user}`);
-			console.log(color.yellow, UserToBlock);
-			console.log(color.yellow, `user Asking to block: ${profilBlock.SenderName}`);
-			console.log(color.yellow, UserAskingToBlock);
+			// console.log(color.yellow, `user to block: ${profilBlock.user}`);
+			// console.log(color.yellow, UserToBlock);
+			// console.log(color.yellow, `user Asking to block: ${profilBlock.SenderName}`);
+			// console.log(color.yellow, UserAskingToBlock);
+			// console.log(color.red, clientName);
 
 			const usersBlocked: BlockedData[] = fastify.db.getAllBlockedUsers() ?? [];
 			if (!UserAskingToBlock || !UserToBlock || !usersBlocked) return;
 			const userAreBlocked: boolean = isBlocked(UserAskingToBlock, UserToBlock, usersBlocked);
+			if (isUser_BlockedBy_me(fastify, UserAskingToBlock!.id, UserToBlock!.id)) {
+				const message: blockedUnBlocked = {
+					userState: 'un-block',
+					userTarget: '',
+					by: '',
+				};
+				socket.emit('blockBtn', message);
+			}
+			else {
+				const message: blockedUnBlocked = {
+					userState: 'block',
+					userTarget: UserToBlock.name,
+					by: UserAskingToBlock.name,
+				};
+				socket.emit('blockBtn', message);
+			}
 
 			if (userAreBlocked) {
-			    console.log(color.green, 'Both users are blocked as requested');
+			    // console.log(color.green, 'Both users are blocked as requested');
 			    // return true;  // or any other action you need to take
 
-
-				console.log(color.red, 'ALL BLOCKED USERS:', usersBlocked);
+				// console.log(color.red, 'ALL BLOCKED USERS:', usersBlocked);
 				fastify.db.removeBlockedUserFor(UserAskingToBlock!.id, UserToBlock!.id);
-				const usersBlocked2 = fastify.db.getAllBlockedUsers();
-				console.log(color.green, 'remove ALL BLOCKED USERS:', usersBlocked2);
+				// const usersBlocked2 = fastify.db.getAllBlockedUsers();
+				// console.log(color.green, 'remove A BLOCKED USER:', usersBlocked2);
 				if (clientName !== null) {
 					const blockedMessage = 'I have un-blocked you';
 					if (clientName !== null) {
-						const obj = {
+						const obj: obj = {
 							command: 'message',
 							destination: 'privateMsg',
 							type: 'chat',
 							user: clientName,
 							token: '',
 							text: '',
+							frontendUserName: '',
+							frontendUser: '',
 							timestamp: Date.now(),
 							SenderWindowID: socket.id,
 							Sendertext: 'You have un-blocked',
@@ -354,20 +436,28 @@ async function onReady(fastify: FastifyInstance) {
 					}
 					// profilBlock.Sendertext = `'You have un-blocked '`;
 					sendBlocked(fastify, blockedMessage, profilBlock);
+					// const message: blockedUnBlocked  =
+					// {
+					// 	userState: "un-block",
+					// 	userTarget: "",
+					// 	by: "",
+
+					// };
+					// socket.emit('blockBtn', message);
 				}
 			}
 			else {
 
-			    console.log(color.red, 'The users are not blocked in this way');
-				console.log(color.red, 'ALL BLOCKED USERS:', usersBlocked);
+			    // console.log(color.red, 'The users are not blocked in this way');
+				// console.log(color.red, 'ALL BLOCKED USERS:', usersBlocked);
 				fastify.db.addBlockedUserFor(UserAskingToBlock!.id, UserToBlock!.id);
-				const usersBlocked2 = fastify.db.getAllBlockedUsers();
-				console.log(color.green, 'ALL BLOCKED USERS:', usersBlocked2);
+				// const usersBlocked2 = fastify.db.getAllBlockedUsers();
+				// console.log(color.green, 'ALL BLOCKED USERS:', usersBlocked2);
 				if (clientName !== null) {
 					const blockedMessage = 'I have blocked you';
 					profilBlock.Sendertext = 'You have blocked ';
 					if (clientName !== null) {
-						const obj = {
+						const obj: obj = {
 							command: 'message',
 							destination: 'privateMsg',
 							type: 'chat',
@@ -375,6 +465,8 @@ async function onReady(fastify: FastifyInstance) {
 							token: '',
 							text: '',
 							timestamp: Date.now(),
+							frontendUserName: '',
+							frontendUser: '',
 							SenderWindowID: socket.id,
 							Sendertext: 'You have blocked',
 						};
@@ -383,6 +475,14 @@ async function onReady(fastify: FastifyInstance) {
 						//   clientChat.delete(obj.user);
 					}
 					sendBlocked(fastify, blockedMessage, profilBlock);
+					// const message: blockedUnBlocked  =
+					// {
+					// 	userState: "block",
+					// 	userTarget: UserToBlock.name,
+					// 	by: UserAskingToBlock.name,
+
+					// };
+					// socket.emit('blockBtn', message);
 				}
 			}
 		});
@@ -411,12 +511,12 @@ async function onReady(fastify: FastifyInstance) {
   				// 	client.user = clientName;
 				// }
 			}
-    		console.log(
-    		    color.green,
-    		    `Client entered the Chat: ${clientName} (${socket.id})`,
-    		);
+    		// console.log(
+    		    // color.green,
+    		    // `Client entered the Chat: ${clientName} (${socket.id})`,
+    		// );
     		if (clientName !== null) {
-    		    const obj = {
+    		    const obj: ClientMessage = {
 					command: '',
 					destination: 'system-info',
     		        type: 'chat',
@@ -427,6 +527,10 @@ async function onReady(fastify: FastifyInstance) {
     		        text: text,
     		        timestamp: Date.now(),
     		        SenderWindowID: socket.id,
+					Sendertext: '',
+					userID: '',
+					SenderUserName: '',
+					SenderUserID: '',
     		    };
     		    broadcast(fastify, obj, obj.SenderWindowID);
     		}

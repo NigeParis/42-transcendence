@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Docker.mk                                          :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: maiboyer <maiboyer@student.42.fr>          +#+  +:+       +#+         #
+#    By: nrobinso <nrobinso@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/11 18:10:26 by maiboyer          #+#    #+#              #
-#    Updated: 2025/12/12 14:56:10 by maiboyer         ###   ########.fr        #
+#    Updated: 2025/12/19 14:33:21 by maiboyer         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,7 +20,7 @@ DOCKER_SERVICE=        \
 			  frontend \
 			  nginx    \
 			  user     \
-
+			  
 
 all: build
 	docker compose up -d $(DOCKER_SERVICE)
