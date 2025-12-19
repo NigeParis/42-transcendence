@@ -37,15 +37,22 @@ export function broadcast(fastify: FastifyInstance, data: ClientMessage, sender?
 			//console.log(color.yellow, 'me:', getUserByName(AllusersBlocked, data.user)?.id)
 			const UserByName = getUserByName(AllusersBlocked, data.user)?.id ?? "";
 			const list:BlockRelation[]  = whoBlockedMe(fastify, UserByName);
-			const blockers = list.map(r => r.blocker);
-const blocked = list.map(r => r.blocked);
-console.log('All blockers:', blockers);
-console.log('All blocked:', blocked);
+
+
+
+			const blockers = list.map(read => read.blocker);
+			const blocked = list.map(read => read.blocked);
+
+			console.log('All blockers:', blockers);
+			console.log('All blocked:', blocked);
+
+
+
 			//console.log(color.yellow, 'list:', list)
 	fastify.io.fetchSockets().then((sockets) => {
 		for (const socket of sockets) {
 			// Skip sender's own socket
-			//if (socket.id === sender) continue;
+			if (socket.id === sender) continue;
 			// Get client name from map
 			const clientInfo = clientChat.get(socket.id);
 			if (!clientInfo?.user) {
@@ -69,7 +76,7 @@ console.log('All blocked:', blocked);
 			// } else {
 			// 	console.log('FALSE → sender IS blocked');
 			// }
-			if (list.filter(entry => entry.blocker === UserByID)) continue;				
+			//if (list.filter(entry => entry.blocker === UserByID)) continue;				
 			socket.emit('MsgObjectServer', { message: data });
 
 
