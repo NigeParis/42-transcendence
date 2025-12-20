@@ -1,3 +1,5 @@
+import type { TicTacToeData } from '@shared/database/mixin/tictactoe';
+
 // Represents the possible states of a cell on the board.
 // `null` means that the cell is empty.
 type CellState = 'O' | 'X' | null
