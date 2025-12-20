@@ -33,7 +33,7 @@ export const TicTacToeImpl: Omit<ITicTacToeDb, keyof Database> = {
 
 export type TicTacToeId = number & { readonly __brand: unique symbol };
 
-export type TemplateData = {
+export type TicTacToeData = {
 	readonly id: TicTacToeId;
 	readonly player1: string;
 	readonly player2: string;
