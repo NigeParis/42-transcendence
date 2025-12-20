@@ -3,8 +3,8 @@ import type { Database } from './_base';
 
 // describe every function in the object
 export interface ITicTacToeDb extends Database {
-	normalFunction(id: TemplateId): TemplateData | undefined,
-	asyncFunction(id: TemplateId): Promise<TemplateData | undefined>,
+	setGameOutcome(this: ITicTacToeDb, id: GameId): void,
+// 	asyncFunction(id: TemplateId): Promise<TemplateData | undefined>,
 };
 
 export const TicTacToeImpl: Omit<ITicTacToeDb, keyof Database> = {
