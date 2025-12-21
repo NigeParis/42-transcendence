@@ -6,13 +6,13 @@ import app from './app';
 const start = async () => {
 	const envToLogger = {
 		development: {
-			transport: {
-				target: 'pino',
-				options: {
-					translateTime: 'HH:MM:ss Z',
-					ignore: 'pid,hostname',
-				},
-			},
+			// transport: {
+			// 	target: 'pino',
+			// 	options: {
+			// 		translateTime: 'HH:MM:ss Z',
+			// 		ignore: 'pid,hostname',
+			// 	},
+			// },
 		},
 		production: true,
 		test: false,

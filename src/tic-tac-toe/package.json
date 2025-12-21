@@ -6,9 +6,8 @@
   "scripts": {
     "start": "npm run build && node dist/run.js",
     "build": "vite build",
-    "build:prod": "vite build --outDir=/dist --minify=true --sourcemap=false",
-    "REMOVEME-build:openapi": "VITE_ENTRYPOINT=src/openapi.ts vite build && node dist/openapi.cjs >openapi.json",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:prod": "vite build --outDir=/dist --minify=true --sourcemap=false && mv /dist/run.js /dist/run.cjs",
+    "build:openapi": "VITE_ENTRYPOINT=src/openapi.ts vite build && mv dist/openapi.js dist/openapi.cjs && node dist/openapi.cjs >openapi.json"
   },
   "keywords": [],
   "author": "",
@@ -24,7 +23,7 @@
     "fastify": "^5.6.2",
     "fastify-plugin": "^5.1.0",
     "socket.io": "^4.8.1",
-    "typebox": "^1.0.64"
+    "typebox": "^1.0.65"
   },
   "devDependencies": {
     "@types/node": "^22.19.3",

@@ -76,9 +76,8 @@ services:
        context: ./src/
        args:
          - SERVICE=tic-tac-toe
-         - EXTRA_FILES=tic-tac-toe/extra
-     container_name: tic-tac-toe
-     restart: unless-stopped
+     container_name: app-tic-tac-toe
+     restart: always
      networks:
        - app
      volumes:
@@ -87,6 +86,11 @@ services:
      environment:
        - JWT_SECRET=KRUGKIDROVUWG2ZAMJZG653OEBTG66BANJ2W24DTEBXXMZLSEB2GQZJANRQXU6JA
        - DATABASE_DIR=/volumes/database
+     logging:
+       driver: gelf
+       options:
+         gelf-address: "udp://127.0.0.1:12201"
+         tag: "{{.Name}}"
 
   ###############
   #    CHAT     #
