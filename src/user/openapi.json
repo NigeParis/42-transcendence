@@ -529,7 +529,8 @@
                                             "required": [
                                                 "name",
                                                 "id",
-                                                "guest"
+                                                "guest",
+                                                "desc"
                                             ],
                                             "properties": {
                                                 "name": {
@@ -540,6 +541,9 @@
                                                 },
                                                 "guest": {
                                                     "type": "boolean"
+                                                },
+                                                "desc": {
+                                                    "type": "string"
                                                 },
                                                 "selfInfo": {
                                                     "type": "object",

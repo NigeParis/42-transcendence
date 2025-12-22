@@ -15,6 +15,7 @@ export type User = {
 	id: string;
 	guest: boolean;
 	name: string;
+	desc: string;
 	selfInfo?: {
 		loginName?: string;
 		providerId?: string;

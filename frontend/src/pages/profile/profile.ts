@@ -97,6 +97,13 @@ async function route(url: string, _args: { [k: string]: string }) {
 			let providerUserBox =
 				app.querySelector<HTMLDivElement>("#providerUserBox")!;
 
+			let descWrapper =
+				app.querySelector<HTMLDivElement>("#descWrapper")!;
+			let descBox =
+				app.querySelector<HTMLInputElement>("#descBox")!;
+			let descButton =
+				app.querySelector<HTMLButtonElement>("#descButton")!;
+
 			let accountTypeBox =
 				app.querySelector<HTMLDivElement>("#accountType")!;
 			displayNameBox.value = user.name;
@@ -119,12 +126,8 @@ async function route(url: string, _args: { [k: string]: string }) {
 			let totpWrapper =
 				app.querySelector<HTMLDivElement>("#totpWrapper")!;
 
-			if (user.guest) {
-				for (let c of passwordButton.classList.values()) {
-					if (c.startsWith("bg-") || c.startsWith("hover:bg-"))
-						passwordButton.classList.remove(c);
-				}
-			}
+			descBox.value = user.desc;
+
 			if (user.guest) {
 				removeBgColor(
 					passwordButton,
@@ -132,7 +135,15 @@ async function route(url: string, _args: { [k: string]: string }) {
 					enableBtn,
 					disableBtn,
 					showSecretBtn,
+					descButton,
 				);
+
+				descButton.classList.add(
+					"bg-gray-700",
+					"hover:bg-gray-700",
+				);
+				descButton.disabled = true;
+				descBox.disabled = true;
 
 				passwordButton.classList.add(
 					"bg-gray-700",
@@ -254,6 +265,16 @@ async function route(url: string, _args: { [k: string]: string }) {
 					showSuccess("Successfully changed password");
 					handleRoute();
 				} else {
+					showError(`Failed to update: ${req.msg}`);
+				}
+			};
+			descButton.onclick = async () => {
+				let req = await client.changeDesc({ changeDescRequest: { desc: descBox.value } });
+				if (req.kind === "success") {
+					showSuccess("Successfully changed description");
+					handleRoute();
+				}
+				else {
 					showError(`Failed to update: ${req.msg}`);
 				}
 			};

@@ -6,7 +6,7 @@ import { isNullish, MakeStaticResponse, typeResponse } from '@shared/utils';
 
 export const UserInfoRes = {
 	'200': typeResponse('success', 'userinfo.success', {
-		name: Type.String(), id: Type.String(), guest: Type.Boolean(),
+		name: Type.String(), id: Type.String(), guest: Type.Boolean(), desc: Type.String(),
 		selfInfo: Type.Optional(Type.Object({
 			login_name: Type.Optional(Type.String()),
 			provider_id: Type.Optional(Type.String()),
@@ -61,6 +61,7 @@ const route: FastifyPluginAsync = async (fastify, _opts): Promise<void> => {
 				// ```
 				// is the same as `val = !!something`
 				guest: !!user.guest,
+				desc: user.desc,
 				selfInfo: askSelf ? {
 					login_name: user.login,
 					provider_id: user.provider_name,
