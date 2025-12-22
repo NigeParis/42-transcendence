@@ -47,6 +47,12 @@ export interface GetUser200ResponsePayload {
     guest: boolean;
     /**
      * 
+     * @type {string}
+     * @memberof GetUser200ResponsePayload
+     */
+    desc: string;
+    /**
+     * 
      * @type {GetUser200ResponsePayloadSelfInfo}
      * @memberof GetUser200ResponsePayload
      */
@@ -60,6 +66,7 @@ export function instanceOfGetUser200ResponsePayload(value: object): value is Get
     if (!('name' in value) || value['name'] === undefined) return false;
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('guest' in value) || value['guest'] === undefined) return false;
+    if (!('desc' in value) || value['desc'] === undefined) return false;
     return true;
 }
 
@@ -76,6 +83,7 @@ export function GetUser200ResponsePayloadFromJSONTyped(json: any, ignoreDiscrimi
         'name': json['name'],
         'id': json['id'],
         'guest': json['guest'],
+        'desc': json['desc'],
         'selfInfo': json['selfInfo'] == null ? undefined : GetUser200ResponsePayloadSelfInfoFromJSON(json['selfInfo']),
     };
 }
@@ -94,6 +102,7 @@ export function GetUser200ResponsePayloadToJSONTyped(value?: GetUser200ResponseP
         'name': value['name'],
         'id': value['id'],
         'guest': value['guest'],
+        'desc': value['desc'],
         'selfInfo': GetUser200ResponsePayloadSelfInfoToJSON(value['selfInfo']),
     };
 }
