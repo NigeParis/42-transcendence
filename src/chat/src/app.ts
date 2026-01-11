@@ -18,7 +18,7 @@ import { makeProfil } from './chatBackHelperFunctions/makeProfil';
 import { isBlocked } from './chatBackHelperFunctions/isBlocked';
 import { sendProfil } from './chatBackHelperFunctions/sendProfil';
 import { setGameLink } from './setGameLink';
-import { nextGame_SocketListener } from './nextGame_SocketListener';
+//import { nextGame_SocketListener } from './nextGame_SocketListener';
 import { list_SocketListener } from './chatBackHelperFunctions/list_SocketListener';
 import { isUser_BlockedBy_me } from './chatBackHelperFunctions/isUser_BlockedBy_me';
 import type { ClientInfo, blockedUnBlocked } from './chat_types';
@@ -103,7 +103,7 @@ async function onReady(fastify: FastifyInstance) {
 			broadcast(fastify, obj, obj.SenderWindowID);
 			fastify.log.info(`Client connected: ${socket.id}`);
 		});
-		nextGame_SocketListener(fastify, socket);
+		//nextGame_SocketListener(fastify, socket);
 		list_SocketListener(fastify, socket);
 
 		socket.on('updateClientName', (object) => {
@@ -217,8 +217,13 @@ async function onReady(fastify: FastifyInstance) {
 		socket.on('inviteGame', async (data: string) => {
 			const clientName: string = clientChat.get(socket.id)?.user || '';
 			const profilInvite: ClientProfil = JSON.parse(data) || '';
+			const linkGame: Response | undefined = await setGameLink(fastify);
+			if (!linkGame) return;
+			const tmp: any = await linkGame?.json();
+			const link: string = `'<a href=\'https://localhost:8888/pong?game=${tmp.payload.gameId}\' style=\'color: blue; text-decoration: underline; cursor: pointer;\'>Click me</a>'`;
 
-			const inviteHtml: string = 'invites you to a game ' + setGameLink('');
+			console.log(link);
+			const inviteHtml: string = 'invites you to a game' + link;
 			if (clientName !== null) {
 				sendInvite(fastify, inviteHtml, profilInvite);
 			}
