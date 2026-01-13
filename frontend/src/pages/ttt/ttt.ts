@@ -169,6 +169,9 @@ async function handleTTT(): Promise<RouteHandlerReturn> {
 
             socket.on('gameEnd', () => {
                 curGame = null;
+                for (let idx = 0 ; idx < 9 ; idx++) {
+                    cells[idx].innerText = " ";
+                };
                 currentPlayerTimer.innerText = "Waiting for match...";
                 joinQueueBtn.innerText = QueueState.Idle;
             })
