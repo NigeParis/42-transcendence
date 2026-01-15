@@ -150,6 +150,11 @@ services:
       - sqlite-volume:/volumes/database
       - static-volume:/volumes/static
     env_file: .env
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "{{.Name}}"
 
   ###############
   #    USER     #
