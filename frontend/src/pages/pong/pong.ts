@@ -107,7 +107,9 @@ function tourinfoButtons(tourInfo : HTMLButtonElement, tourScoreScreen : HTMLDiv
 	});
 }
 
-function gameJoinButtons(socket : CSocket, inTournament : boolean, currentGame : currentGameInfo | null, 
+let inTournament: boolean = false;
+
+function gameJoinButtons(socket : CSocket, currentGame : currentGameInfo | null, 
 	tournament : HTMLButtonElement, queue : HTMLButtonElement, localGame : HTMLButtonElement, ready : HTMLButtonElement)
 {
 	tournament.addEventListener("click", () => {
@@ -150,6 +152,10 @@ function gameJoinButtons(socket : CSocket, inTournament : boolean, currentGame :
 		}
 	});
 	localGame.addEventListener("click", () => {
+		if (inTournament) {
+			showError("You can't queue up currently !");
+			return;
+		}
 		if (
 			queue.innerText !== QueueState.Iddle ||
 			currentGame !== null ||
@@ -274,7 +280,7 @@ function pongClient(
 	setTitle("Pong Game");
 	const urlParams = new URLSearchParams(window.location.search);
 	let game_req_join = urlParams.get("game");
-	let inTournament = false;
+	inTournament = false;
 
 	return {
 		html: authHtml,
@@ -548,7 +554,7 @@ function pongClient(
 
 			setInterval(() => {keys_listen_setup(currentGame, socket, keys, playHow, playHow_b, tourScoreScreen, queue)}, 1000 / 60);
 
-			gameJoinButtons(socket, inTournament, currentGame, tournament, queue, localGame, ready);
+			gameJoinButtons(socket, currentGame, tournament, queue, localGame, ready);
 			playhowButtons(playHow_b, playHow);
 			tourinfoButtons(tourInfo, tourScoreScreen);
 

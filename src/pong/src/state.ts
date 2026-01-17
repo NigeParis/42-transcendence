@@ -160,8 +160,20 @@ class StateI {
 			});
 			return;
 		}
-
-		this.dequeueUser(user.socket);
+		if (user.currentGame !== null) {
+			sock.emit('tournamentRegister', {
+				kind: 'failure',
+				msg: 'You are in game',
+			});
+			return;
+		}
+		if (this.queue.has(user.id)) {
+			sock.emit('tournamentRegister', {
+				kind: 'failure',
+				msg: 'You are in queue',
+			});
+			return;
+		}
 		this.tournament.addUser(user.id, name ?? udb.name);
 		sock.emit('tournamentRegister', {
 			kind: 'success',
@@ -281,7 +293,9 @@ class StateI {
 		this.games.set(gameId, g);
 		setTimeout(() => {
 			if (!g.ready_checks[0] && !g.ready_checks[1]) {
-				this.fastify.log.info(`paused game ${gameId} has been canceled`);
+				this.fastify.log.info(
+					`paused game ${gameId} has been canceled`,
+				);
 				this.cleanupGame(gameId, g);
 			}
 		}, 1000 * 60);
@@ -444,13 +458,19 @@ class StateI {
 		) {
 			this.fastify.log.warn(
 				'user trying to connect to a game he\'s not part of: gameId:' +
-				g_id + ' userId:' + sock.authUser.id);
+				g_id +
+				' userId:' +
+				sock.authUser.id,
+			);
 			return JoinRes.no;
 		}
 		if (game.userOnPage[0] === true && game.userOnPage[1] === true) {
 			this.fastify.log.warn(
 				'user trying to connect to a game he\'s already joined: gameId:' +
-				g_id + ' userId:' + sock.authUser.id);
+				g_id +
+				' userId:' +
+				sock.authUser.id,
+			);
 			return JoinRes.no;
 		}
 		game.userOnPage[game.userLeft === sock.authUser.id ? 0 : 1] = true;
