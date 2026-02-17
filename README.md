@@ -8,6 +8,13 @@ The application is built with a robust backend using **Fastify**, a dynamic fron
 ft_transcendence aims to deliver a complete user experience, from authentication and statistics dashboards to real-time gameplay and microservice-based architecture.</br>
 <img width="971" height="379" alt="Capture d’écran 2026-02-15 à 17 37 36" src="https://github.com/user-attachments/assets/efd11bad-31ab-4aa3-aed0-7aa4f720a03b" />
 </br>
+Group project: </br>
+<img width="366" height="240" alt="Screenshot from 2026-02-17 09-30-23" src="https://github.com/user-attachments/assets/c21f67e6-b04f-454e-9b0a-bf1982ad9b5f" />
+<img width="366" height="240" alt="Screenshot from 2026-02-17 09-30-03" src="https://github.com/user-attachments/assets/2141c86e-3176-4ddf-942f-c894804d4244" />
+<img width="366" height="240" alt="Screenshot from 2026-02-17 09-29-49" src="https://github.com/user-attachments/assets/2f31a937-6d72-4df8-8956-50c280e1d1b2" />
+<img width="366" height="240" alt="Screenshot from 2026-02-17 09-29-29" src="https://github.com/user-attachments/assets/94873d45-8eea-4875-a1e4-a0628016de0d" />
+<img width="371" height="224" alt="Screenshot from 2026-02-17 09-29-10" src="https://github.com/user-attachments/assets/8356cb11-1448-49fb-8dfe-c9df9ccdaa01" />
+
 </br>
 ## **to install** </br>
 git clone https://github.com/NigeParis/42-transcendence.git trans </br>
