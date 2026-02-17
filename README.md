@@ -21,9 +21,6 @@ make </br>
 open firefox https://localhost:8888/ </br>
 
 
-
-
-
 ## **screen shots**</br>
 <img width="695" height="572" alt="Capture d’écran 2026-02-15 à 17 52 08" src="https://github.com/user-attachments/assets/ad9e56f3-631c-424d-9947-27e5147b0365" />
 
