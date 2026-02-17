@@ -29,6 +29,10 @@ open firefox https://localhost:8888/ </br>
 
 
 ## **screen shots**</br>
+
+<img width="402" height="663" alt="Screenshot from 2026-02-17 09-37-59" src="https://github.com/user-attachments/assets/399218f6-1118-49ea-9b92-fda3c1ee0a1c" />
+<img width="316" height="392" alt="Screenshot from 2026-02-17 09-34-26" src="https://github.com/user-attachments/assets/5aaf8240-2e1b-408c-a5da-18fd18b9c165" />
+
 <img width="695" height="572" alt="Capture d’écran 2026-02-15 à 17 52 08" src="https://github.com/user-attachments/assets/ad9e56f3-631c-424d-9947-27e5147b0365" />
 
 <img width="677" height="457" alt="Screenshot from 2026-02-17 08-55-25" src="https://github.com/user-attachments/assets/c09d1884-7240-4313-a6ad-dd66f55eaabc" />
